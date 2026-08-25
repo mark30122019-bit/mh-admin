@@ -4,12 +4,13 @@ import {
   PlusOutlined,
   SortAscendingOutlined,
 } from '@ant-design/icons'
-import { Typography } from 'antd'
+import { Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { LIST_PAGE_SIZE, getPostsFirstPageMinHeight } from '@/api'
+import { LIST_PAGE_SIZE, TABLE_ROW_HEIGHT_PX } from '@/api'
 import type { PostListItem } from '@/api'
+import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
   Input,
@@ -20,9 +21,11 @@ import {
   Table,
   Tag,
   TableSkeleton,
+  getTableSkeletonPreset,
   message,
   notification,
 } from '@/components/ui'
+import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
@@ -88,6 +91,7 @@ function PostsPageContent() {
   const prevDeletingIdRef = useRef<number | null>(null)
   const pageRef = useRef(pagination.currentPage)
   pageRef.current = pagination.currentPage
+  const tableAreaRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!error) return
@@ -145,6 +149,13 @@ function PostsPageContent() {
     return padTablePage(filteredItems, pageSize)
   }, [filteredItems, pageSize, skipPlaceholdersOnFirstPage])
 
+  const tableScroll = useTableScrollY(tableAreaRef, {
+    contentRows: loading ? pageSize : tableRows.length,
+    rowHeight: TABLE_ROW_HEIGHT_PX,
+    headerRowHeight: 39,
+    observeKey: loading,
+  })
+
   const openCreateModal = () => {
     setEditingId(null)
     setModalOpen(true)
@@ -178,13 +189,13 @@ function PostsPageContent() {
       {
         title: 'ID',
         dataIndex: 'id',
-        width: 72,
+        width: 64,
         render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
       },
       {
         title: t('posts.preview'),
         dataIndex: 'previewPicture',
-        width: 88,
+        width: 72,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const url = record.previewPicture?.url
@@ -196,16 +207,20 @@ function PostsPageContent() {
             )
           }
           return (
-            <img
+            <Image
               src={url}
               alt={record.title}
-              width={56}
-              height={40}
+              width={48}
+              height={34}
               style={{
                 objectFit: 'cover',
-                borderRadius: 6,
+                borderRadius: 4,
                 display: 'block',
                 background: '#f5f5f5',
+              }}
+              preview={{
+                src: url,
+                maskClassName: 'posts-preview-mask',
               }}
             />
           )
@@ -214,12 +229,13 @@ function PostsPageContent() {
       {
         title: t('posts.postTitle'),
         dataIndex: 'title',
+        ellipsis: true,
         render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
       },
       {
         title: t('posts.author'),
         dataIndex: 'authorName',
-        width: 180,
+        ellipsis: true,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const { label, orphan } = resolvePostAuthorLabel(
@@ -237,7 +253,7 @@ function PostsPageContent() {
       {
         title: t('posts.tags'),
         dataIndex: 'tagNames',
-        width: 200,
+        width: 160,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const resolvedTags = resolvePostTagLabels(record, tagCatalog, lang)
@@ -258,7 +274,7 @@ function PostsPageContent() {
       {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
-        width: 140,
+        width: 120,
         render: (value: string, record) =>
           isTablePlaceholderRow(record)
             ? null
@@ -267,7 +283,7 @@ function PostsPageContent() {
       {
         title: t('common.actions'),
         key: 'actions',
-        width: 100,
+        width: 96,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
@@ -297,67 +313,52 @@ function PostsPageContent() {
 
   return (
     <>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 8,
-          padding: '28px 32px 24px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 24,
-          }}
-        >
-          <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
-            {t('posts.title')}
-          </Typography.Title>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-            {t('posts.newPost')}
-          </Button>
+      <AdminPageFrame fill>
+        <div className="mb-4 shrink-0">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <Typography.Title level={3} style={{ margin: 0, fontWeight: 700 }}>
+              {t('posts.title')}
+            </Typography.Title>
+            <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
+              {t('posts.newPost')}
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Input.Search
+              placeholder={t('posts.searchPlaceholder')}
+              allowClear
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              style={{ width: 260 }}
+            />
+            <Select
+              value={authorFilter}
+              options={authorOptions}
+              onChange={setAuthorFilter}
+              style={{ width: 180 }}
+            />
+            <Button icon={<SortAscendingOutlined />} disabled />
+          </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            gap: 12,
-            marginBottom: 20,
-            flexWrap: 'wrap',
-          }}
-        >
-          <Input.Search
-            placeholder={t('posts.searchPlaceholder')}
-            allowClear
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            style={{ width: 280 }}
-          />
-          <Select
-            value={authorFilter}
-            options={authorOptions}
-            onChange={setAuthorFilter}
-            style={{ width: 180 }}
-          />
-          <Button icon={<SortAscendingOutlined />} disabled />
-        </div>
-
-        <div
-          style={
-            skipPlaceholdersOnFirstPage
-              ? { minHeight: getPostsFirstPageMinHeight() }
-              : undefined
-          }
-        >
-          {loading ? (
-            <TableSkeleton rows={pageSize} />
+        <AdminTableShell containerRef={tableAreaRef}>
+          {loading || !tableScroll.ready ? (
+            <TableSkeleton
+              columns={getTableSkeletonPreset('posts')}
+              rows={pageSize}
+              rowHeight={TABLE_ROW_HEIGHT_PX}
+              bordered={false}
+            />
           ) : (
             <Table<PostTableRow>
+              className="posts-table admin-data-table"
               columns={columns}
               dataSource={tableRows}
               pagination={false}
+              size="small"
+              tableLayout="fixed"
+              scroll={tableScroll.y != null ? { y: tableScroll.y } : undefined}
               onRow={(record) => ({
                 className: isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'
@@ -366,21 +367,14 @@ function PostsPageContent() {
               locale={{ emptyText: t('posts.noPosts') }}
             />
           )}
-        </div>
+        </AdminTableShell>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 16,
-            paddingTop: 8,
-          }}
-        >
+        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
           <Typography.Text type="secondary">
             {t('posts.count', { count: pagination.totalCount })}
           </Typography.Text>
           <Pagination
+            size="small"
             current={pagination.currentPage}
             pageSize={pageSize}
             total={pagination.totalCount}
@@ -389,7 +383,7 @@ function PostsPageContent() {
             disabled={loading}
           />
         </div>
-      </div>
+      </AdminPageFrame>
 
       <PostFormModal
         open={modalOpen}

@@ -4,13 +4,13 @@ html,
 body,
 #root {
   margin: 0;
-  min-height: 100%;
+  height: 100%;
 }
 
 /* Пустые строки-заполнители: фиксируют высоту таблицы */
 .ant-table-tbody > tr.table-row-placeholder > td {
-  min-height: 65px;
-  height: 65px;
+  min-height: 48px;
+  height: 48px;
   border-bottom: none !important;
   background: transparent !important;
   pointer-events: none;
@@ -20,3 +20,100 @@ body,
   background: transparent !important;
 }
 
+/* Inset-рамка: воздух от краёв карточки, скроллбар внутри бордера */
+.admin-table-shell {
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.admin-table-shell .ant-table {
+  border-radius: 0;
+}
+
+.admin-table-shell .ant-table-container {
+  border-inline-start: none !important;
+  border-top: none !important;
+}
+
+.admin-table-shell .ant-table-body {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #bfbfbf #fafafa;
+}
+
+.admin-table-shell .ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-table-shell .ant-table-body::-webkit-scrollbar-track {
+  background: #fafafa;
+  border-left: 1px solid #f0f0f0;
+}
+
+.admin-table-shell .ant-table-body::-webkit-scrollbar-thumb {
+  background-color: #bfbfbf;
+  border-radius: 8px;
+  border: 2px solid #fafafa;
+  background-clip: padding-box;
+}
+
+.admin-table-shell .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background-color: #8c8c8c;
+}
+
+.admin-table-shell .ant-table-thead > tr > th,
+.admin-table-shell .ant-table-tbody > tr > td {
+  padding: 10px 16px !important;
+}
+
+.admin-table-shell .ant-table-thead > tr > th:last-child,
+.admin-table-shell .ant-table-tbody > tr > td:last-child {
+  padding-right: 16px !important;
+}
+
+/* Ellipsis: одна строка, без раздувания «резиновых» колонок */
+.admin-data-table td.ant-table-cell-ellipsis,
+.admin-data-table th.ant-table-cell-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+}
+
+.admin-data-table td.ant-table-cell-ellipsis > span,
+.admin-data-table td.ant-table-cell-ellipsis > a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+/* Компактные строки таблицы постов */
+.posts-table .ant-table-thead > tr > th {
+  padding: 8px 14px !important;
+}
+
+.posts-table .ant-table-tbody > tr > td {
+  padding: 6px 14px !important;
+}
+
+.posts-table .ant-table-tbody > tr.table-row-placeholder > td {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Превью поста: маска при наведении, lightbox по клику */
+.posts-preview-mask {
+  font-size: 12px;
+}
+
+.ant-image-preview-root .ant-image-preview-img {
+  max-width: min(720px, 90vw);
+  max-height: min(70vh, 560px);
+  object-fit: contain;
+}

@@ -9,8 +9,15 @@ export const LIST_PAGE_SIZE = {
   tags: 9,
 } as const
 
-/** Высота одной строки таблицы (для min-height первой страницы постов). */
-export const TABLE_ROW_HEIGHT_PX = 65
+/** Высота одной строки компактной таблицы постов. */
+export const TABLE_ROW_HEIGHT_PX = 48
+
+/** Строка авторов (аватар 36 + padding ячеек). */
+export const AUTHORS_TABLE_ROW_HEIGHT_PX = 58
+
+/** Строка тегов (default Ant Table). */
+export const TAGS_TABLE_ROW_HEIGHT_PX = 55
+
 
 /**
  * На первой странице постов при числе записей < pageSize

@@ -5,84 +5,105 @@ alwaysApply: true
 
 # AI Developer Agent Profile & Coding Standards
 
-## 🎯 Роль и цель проекта
-Я выступаю в роли Senior Frontend-разработчика. Моя цель — создать отказоустойчивую, безопасную панель администратора для управления постами на базе **React (v17/v18)**, **TypeScript**, **Redux**, **Redux-Saga** и **connected-react-router**, полностью соответствующую предоставленному ТЗ.
+## Роль и цель проекта
+Senior Frontend: отказоустойчивая панель администратора (посты / авторы / теги) на **React 18**, **TypeScript**, **Redux**, **Redux-Saga**, **connected-react-router**, по ТЗ Machineheads.
 
-Приложение интегрируется с внешним REST API (`http://machineheads.ru`). Весь код пишется в модульном, переиспользуемом стиле с упором на динамическое разделение кода (Lazy Loading).
+REST API: `https://rest-test.machineheads.ru`. Код модульный, с lazy-load страниц и динамическими redux-модулями.
 
----
-
-## ⚠️ Решение проблемы совместимости (Важно)
-Поскольку обязательный по ТЗ пакет `connected-react-router` несовместим с React 19 из-за изменений в Context API, проект переведен на стабильную версию **React 17/18**. 
-- Инициализация и рендеринг в `main.tsx` адаптированы под синтаксис выбранной версии React.
-- Объект `history` (v4/v5) вынесен в отдельный модуль и используется сквозным образом в `ConnectedRouter`, Redux-middleware и Сагах для синхронизации URL и стейта.
+Тестовые креды (из ТЗ): `test@test.ru` / `khro2ij3n2730`.
 
 ---
 
-## 📂 Зафиксированная структура проекта (Архитектурный эталон)
+## Совместимость React
+`connected-react-router` несовместим с React 19 → проект на **React 18**.
+- Рендер в `main.tsx` под React 18.
+- Единый `history` (v4) в `store/history.ts` → `ConnectedRouter`, middleware, саги (`push()`).
 
-Агент обязан строго придерживаться следующей структуры папок и распределения логики, расширяя её под задачи ТЗ:
+---
+
+## Структура проекта (эталон)
 
 ```text
 src/
-├── api/                       # Настройка клиента запросов (Axios/Fetch, интерцепторы для токенов)
-├── hooks/                     # Переиспользуемые хуки приложения
+├── api/                         # REST по доменам
+│   ├── core/                    # client, cookies, errors, constants, formData
+│   ├── auth/
+│   ├── posts/
+│   ├── authors/
+│   ├── tags/
+│   └── shared/                  # pagination, listPageSize
+├── hooks/                       # useTranslation, useFormApiErrors, …
+├── i18n/                        # словари RU/EN
 ├── routes/
-│   └── index.tsx              # Конфигурация роутинга с использованием React.lazy()
+│   └── index.tsx                # React.lazy + AdminShell + AuthRoute
 ├── store/
-│   ├── index.ts               # Базовая инициализация Store с расширением для Saga
-│   ├── history.ts             # Единый инстанс history для приложения (v4/v5)
+│   ├── index.ts                 # Store + saga extension + router + app
+│   ├── history.ts
 │   └── modules/
-│       └── routerModule.ts    # Базовый модуль интеграции connected-react-router
+│       └── routerModule.ts
 ├── components/
-│   ├── LazyPage.tsx           # Компонент-обертка с Suspense и AntD Spin для загрузки страниц
-│   ├── DynamicModuleLoader.tsx# Обертка для динамической регистрации редьюсеров/саг в сторе
-│   └── Layout/                # Общие UI компоненты (Основной лейаут админки, Сайдбар)
-├── pages/                     # Контексты страниц (Представления)
-│   ├── Home/                  # Главная страница (Дашборд)
-│   │   └── index.tsx          # Представление страницы + подключение DynamicModuleLoader
-│   └── Login/                 # Страница авторизации
-│       └── index.tsx
-└── modules/                   # Изолированные динамические бизнес-модули (Логика: редьюсеры, саги)
-    ├── auth/                  # Глобальный модуль сессии и токенов
-    │   ├── auth.module.ts     # Декларация модуля для redux-dynamic-modules
-    │   ├── reducer.ts
-    │   └── sagas.ts
-    ├── posts/                 # Модуль управления постами
-    │   ├── posts.module.ts
-    │   ├── reducer.ts
-    │   └── sagas.ts
-    ├── authors/               # Модуль управления авторами
-    │   └── ...
-    └── tags/                  # Модуль управления тегами
-        └── ...
-├── App.tsx                    # Корневой файл: Redux Provider + ConnectedRouter + AntD ConfigProvider
-└── main.tsx                   # Точка входа приложения
+│   ├── LazyPage.tsx
+│   ├── DynamicModuleLoader.tsx
+│   ├── AuthProvider.tsx         # динамический модуль auth
+│   ├── AppConfigProvider.tsx    # AntD locale из Redux language
+│   ├── Layout/                  # MainLayout, Sidebar, Header
+│   └── ui/                      # обёртки Ant Design + TableSkeleton
+├── pages/                       # Только UI (без DynamicModuleLoader)
+│   ├── Home/                    # редирект /posts | /login
+│   ├── Login/
+│   ├── Posts/
+│   ├── Authors/
+│   └── Tags/
+├── modules/                     # reducer + saga + *.module.ts
+│   ├── app/                     # язык (глобально в store)
+│   ├── auth/                    # через AuthProvider
+│   ├── posts/                   # через AdminShell
+│   ├── authors/
+│   └── tags/
+├── utils/
+├── App.tsx
+└── main.tsx
 ```
 
 ---
 
-## 📐 Архитектурные принципы и правила для Агента
+## Архитектурные принципы
 
 ### 1. Модульность (Dynamic Modules)
-- Запрещено регистрировать редьюсеры и саги конкретных бизнес-сущностей в глобальном сторе `store/index.ts`.
-- Функционал страниц (авторизация, посты, авторы, теги) разделен: интерфейс живет в `pages/`, а чистая логика (state, sagas) описывается внутри `modules/`.
-- Подключение редюсеров и саг бизнес-модулей происходит динамически внутри `pages/**/index.tsx` через компонент `DynamicModuleLoader` в момент монтирования представления.
+- **Запрещено** регистрировать бизнес-редьюсеры/саги (`posts`, `authors`, `tags`, `auth`) в `store/index.ts`.
+- В корневом store только: `router`, `app` (i18n).
+- UI в `pages/`, логика в `modules/`.
+- **Как подключать модули (актуально):**
+  - `auth` — в `AuthProvider` через `DynamicModuleLoader` (на всё приложение после старта).
+  - `posts` + `authors` + `tags` — **один раз** в `AdminShell` внутри `routes/index.tsx` (маршруты `/posts|/authors|/tags`). Shell и модули **не размонтируются** при переключении разделов сайдбара — это намеренно (UX без белой вспышки).
+  - Страницы `pages/**/index.tsx` **не** оборачивают себя в `DynamicModuleLoader`.
+- Это по-прежнему lazy load reducers по ТЗ: модули не в статическом корневом store, подключаются через `redux-dynamic-modules`.
 
-### 2. Синхронизация роутинга через Redux
-- Переходы между страницами внутри Саг (например, редирект на главную после успешного логина или на `/login` при ошибке авторизации) осуществляются **строго** через отправку экшена `push('/route')` из библиотеки `connected-react-router`.
+### 2. Роутинг и layout
+- Навигация в сагах — только `push('/route')` из `connected-react-router`.
+- Приватные страницы рендерятся внутри `AdminShell` → `MainLayout` (layout стабилен).
+- Страницы — `React.lazy`; fallback внутри админки — `PageContentSkeleton`, не full-page Spin.
+- `/` — только редирект на `/posts` или `/login`.
 
-### 3. Слой работы с REST API и Авторизация
-- Данные токенов (`accessToken` и `refreshToken`) должны сохраняться исключительно в **Cookies** приложения.
-- В слое `src/api/` должен быть реализован интерцептор (или Сага-перехватчик), обрабатывающий `401` ошибку. При истечении времени жизни `accessToken`, приложение должно отправлять запрос на обновление через `refreshToken`, сохранять новые ключи в куки и бесшовно повторять упавший запрос.
+### 3. API и авторизация
+- Токены только в **Cookies** (`api/core/cookies.ts`).
+- Interceptor на `401`: refresh → новые cookies → повтор запроса; при провале — `notifySessionExpired` → Redux `SESSION_EXPIRED` → `/login`.
+- API слой сгруппирован по папкам доменов; публичный импорт — `@/api`.
 
-### 4. Использование UI-компонентов и Стилизации
-- Для построения сложных интерфейсов (интерактивные таблицы, формы с валидацией, пагинация, модальные окна) используются компоненты **Ant Design**.
-- Для позиционирования блоков, сеток (Grid, Flexbox), внешних отступов (margins, paddings) и кастомизации каркаса используются утилитарные классы **Tailwind CSS**. Инструменты дополняют друг друга.
+### 4. UI
+- Ant Design — таблицы, формы, модалки, пагинация.
+- Tailwind — отступы/layout.
+- Загрузка списков — **скелетон** (`TableSkeleton`), не Spin overlay таблицы.
+- Язык: Redux `app.language` + `localStorage.app_lang` + AntD `ConfigProvider` locale + `useTranslation()`.
 
-### 5. Строгая типизация (TypeScript)
-- Использование типа `any` строго запрещено. 
-- Все данные, возвращаемые методами API, параметры экшенов, стейт модулей, пропсы компонентов и структуры пагинации из заголовков ответа сервера должны быть полностью описаны через `interface` или `type`.
+### 5. TypeScript
+- `any` запрещён.
+- Типизировать API-ответы, экшены, state, пропсы, пагинацию из headers.
+- ID с API нормализовать через `toEntityId` / `idsEqual` (string vs number).
+
+### 6. Данные-сироты
+- Удалённые авторы/теги: Safe Render (`orphanLabels`), temporary option в Select автора, голые ID тегов можно снять.
 
 ---
 
+Не противоречь этому файлу устаревшими паттернами вроде «DynamicModuleLoader внутри каждой pages/*/index.tsx».

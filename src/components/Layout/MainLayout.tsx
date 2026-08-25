@@ -19,6 +19,9 @@ type MainLayoutProps = {
   children: ReactNode
 }
 
+/**
+ * Enterprise layout: Sider + Header зафиксированы, скроллится только Content.
+ */
 export function MainLayout({ children }: MainLayoutProps) {
   const dispatch = useDispatch()
   const { t } = useTranslation()
@@ -34,9 +37,16 @@ export function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout hasSider style={{ height: '100vh', overflow: 'hidden' }}>
       <Sidebar />
-      <Layout>
+      <Layout
+        style={{
+          height: '100vh',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <AppHeader
           profileSlot={
             <>
@@ -63,13 +73,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </>
           }
         />
-        <Content
-          style={{
-            padding: '32px 40px',
-            background: '#f5f5f5',
-            minHeight: 'calc(100vh - 64px)',
-          }}
-        >
+        <Content className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f5f5f5] px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 xl:px-10 xl:py-8">
           {children}
         </Content>
       </Layout>

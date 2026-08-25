@@ -8,8 +8,14 @@ type LazyPageProps = {
 
 export function LazyPage({ children, fallback }: LazyPageProps) {
   return (
-    <Suspense fallback={fallback ?? <Spin fullPage />}>
-      {children}
+    <Suspense
+      fallback={
+        <div className="flex min-h-0 flex-1 flex-col">
+          {fallback ?? <Spin fullPage />}
+        </div>
+      }
+    >
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </Suspense>
   )
 }

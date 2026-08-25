@@ -64,7 +64,15 @@ export function Sidebar() {
       breakpoint="lg"
       collapsedWidth={64}
       width={240}
-      style={{ background: '#001529' }}
+      style={{
+        background: '#001529',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        overflow: 'auto',
+        flexShrink: 0,
+      }}
     >
       <div
         style={{

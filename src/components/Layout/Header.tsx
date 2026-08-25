@@ -21,6 +21,11 @@ export function AppHeader({ profileSlot, actionsSlot }: AppHeaderProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexShrink: 0,
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        width: '100%',
       }}
     >
       <Space size={12} align="center">

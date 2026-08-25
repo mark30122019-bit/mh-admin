@@ -4,7 +4,8 @@ import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { TagListItem } from '@/api'
-import { LIST_PAGE_SIZE } from '@/api'
+import { LIST_PAGE_SIZE, TAGS_TABLE_ROW_HEIGHT_PX } from '@/api'
+import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
   Modal,
@@ -12,9 +13,11 @@ import {
   Space,
   Table,
   TableSkeleton,
+  getTableSkeletonPreset,
   message,
   notification,
 } from '@/components/ui'
+import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
 import type { TagsModuleState } from '@/modules/tags/tags.module'
@@ -58,6 +61,7 @@ function TagsPageContent() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const prevDeletingIdRef = useRef<number | null>(null)
+  const tableAreaRef = useRef<HTMLDivElement>(null)
 
   const pageSize = LIST_PAGE_SIZE.tags
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize) || 1)
@@ -83,6 +87,12 @@ function TagsPageContent() {
     return padTablePage(items.slice(start, start + pageSize), pageSize)
   }, [items, page, pageSize])
 
+  const tableScroll = useTableScrollY(tableAreaRef, {
+    contentRows: loading ? pageSize : pageItems.length,
+    rowHeight: TAGS_TABLE_ROW_HEIGHT_PX,
+    observeKey: loading,
+  })
+
   const confirmDelete = useCallback(
     (id: number) => {
       Modal.confirm({
@@ -105,41 +115,43 @@ function TagsPageContent() {
       {
         title: 'ID',
         dataIndex: 'id',
-        width: 72,
+        width: 64,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
         title: t('tags.name'),
         dataIndex: 'name',
+        ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
         title: t('tags.code'),
         dataIndex: 'code',
-        width: 160,
+        width: 140,
+        ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
         title: t('tags.priority'),
         dataIndex: 'sort',
-        width: 120,
+        width: 96,
         render: (value: number | null | undefined, record) =>
           isTablePlaceholderRow(record) ? null : (value ?? '—'),
       },
       {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
-        width: 140,
+        width: 120,
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
       },
       {
         title: t('common.actions'),
         key: 'actions',
-        width: 100,
+        width: 96,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
@@ -169,21 +181,8 @@ function TagsPageContent() {
 
   return (
     <>
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 8,
-          padding: '28px 32px 24px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 24,
-          }}
-        >
+      <AdminPageFrame fill>
+        <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:mb-5">
           <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
             {t('tags.title')}
           </Typography.Title>
@@ -199,31 +198,33 @@ function TagsPageContent() {
           </Button>
         </div>
 
-        {loading ? (
-          <TableSkeleton rows={pageSize} />
-        ) : (
-          <Table<TagTableRow>
-            columns={columns}
-            dataSource={pageItems}
-            pagination={false}
-            onRow={(record) => ({
-              className: isTablePlaceholderRow(record)
-                ? 'table-row-placeholder'
-                : undefined,
-            })}
-            locale={{ emptyText: t('tags.noTags') }}
-          />
-        )}
+        <AdminTableShell containerRef={tableAreaRef}>
+          {loading || !tableScroll.ready ? (
+            <TableSkeleton
+              columns={getTableSkeletonPreset('tags')}
+              rows={pageSize}
+              rowHeight={TAGS_TABLE_ROW_HEIGHT_PX}
+              bordered={false}
+            />
+          ) : (
+            <Table<TagTableRow>
+              className="admin-data-table"
+              columns={columns}
+              dataSource={pageItems}
+              pagination={false}
+              tableLayout="fixed"
+              scroll={tableScroll.y != null ? { y: tableScroll.y } : undefined}
+              onRow={(record) => ({
+                className: isTablePlaceholderRow(record)
+                  ? 'table-row-placeholder'
+                  : undefined,
+              })}
+              locale={{ emptyText: t('tags.noTags') }}
+            />
+          )}
+        </AdminTableShell>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 16,
-            paddingTop: 8,
-          }}
-        >
+        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
           <Typography.Text type="secondary">
             {t('tags.count', { count: items.length })}
           </Typography.Text>
@@ -236,7 +237,7 @@ function TagsPageContent() {
             disabled={loading}
           />
         </div>
-      </div>
+      </AdminPageFrame>
 
       <TagFormModal
         open={modalOpen}
