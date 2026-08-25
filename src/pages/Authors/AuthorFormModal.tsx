@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorFormPayload } from '@/api'
 import { Button, Form, Input, Modal, message } from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
+import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
 import type { AuthorsModuleState } from '@/modules/authors/authors.module'
 import {
@@ -36,6 +37,7 @@ export function AuthorFormModal({
   onClose,
 }: AuthorFormModalProps) {
   const dispatch = useDispatch()
+  const { t } = useTranslation()
   const [form] = Form.useForm<AuthorFormValues>()
   const [avatarFile, setAvatarFile] = useState<File | undefined>()
   const [fileList, setFileList] = useState<UploadFile[]>([])
@@ -89,11 +91,11 @@ export function AuthorFormModal({
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
-      message.success(editingId ? 'Author updated' : 'Author created')
+      message.success(editingId ? t('authors.updated') : t('authors.created'))
       onClose()
     }
     wasSavingRef.current = saving
-  }, [editingId, onClose, saveError, saving])
+  }, [editingId, onClose, saveError, saving, t])
 
   const handleSubmit = (values: AuthorFormValues) => {
     const payload: AuthorFormPayload = {
@@ -110,7 +112,7 @@ export function AuthorFormModal({
 
   return (
     <Modal
-      title={editingId ? 'Edit author' : 'New author'}
+      title={editingId ? t('authors.editAuthor') : t('authors.newAuthor')}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -124,34 +126,34 @@ export function AuthorFormModal({
         disabled={detailLoading}
       >
         <Form.Item
-          label="Name"
+          label={t('authors.name')}
           name="name"
-          rules={[{ required: true, message: 'Enter name' }]}
+          rules={[{ required: true, message: t('authors.enterName') }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item
-          label="Last name"
+          label={t('authors.lastName')}
           name="lastName"
-          rules={[{ required: true, message: 'Enter last name' }]}
+          rules={[{ required: true, message: t('authors.enterLastName') }]}
         >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Second name" name="secondName">
+        <Form.Item label={t('authors.secondName')} name="secondName">
           <Input />
         </Form.Item>
 
-        <Form.Item label="Short description" name="shortDescription">
+        <Form.Item label={t('authors.shortDescription')} name="shortDescription">
           <Input.TextArea rows={2} />
         </Form.Item>
 
-        <Form.Item label="Description" name="description">
+        <Form.Item label={t('authors.description')} name="description">
           <Input.TextArea rows={4} />
         </Form.Item>
 
-        <Form.Item label="Avatar">
+        <Form.Item label={t('authors.avatar')}>
           <Upload
             beforeUpload={(file) => {
               setAvatarFile(file)
@@ -165,16 +167,16 @@ export function AuthorFormModal({
             fileList={fileList}
             maxCount={1}
           >
-            <Button icon={<UploadOutlined />}>Select file</Button>
+            <Button icon={<UploadOutlined />}>{t('posts.selectFile')}</Button>
           </Upload>
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
           <Button onClick={onClose} style={{ marginRight: 8 }}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="primary" htmlType="submit" loading={saving}>
-            Save
+            {t('common.save')}
           </Button>
         </Form.Item>
       </Form>

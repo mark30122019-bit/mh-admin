@@ -1,34 +1,40 @@
 import { FileTextOutlined, TagsOutlined, TeamOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
+import { useMemo } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
+import { useTranslation } from '@/hooks/useTranslation'
 
 const { Sider } = Layout
-
-const MENU_ITEMS: MenuProps['items'] = [
-  {
-    key: '/posts',
-    icon: <FileTextOutlined />,
-    label: 'Posts Management',
-  },
-  {
-    key: '/authors',
-    icon: <TeamOutlined />,
-    label: 'Authors',
-  },
-  {
-    key: '/tags',
-    icon: <TagsOutlined />,
-    label: 'Tags',
-  },
-]
 
 export function Sidebar() {
   const history = useHistory()
   const location = useLocation()
+  const { t } = useTranslation()
+
+  const menuItems: MenuProps['items'] = useMemo(
+    () => [
+      {
+        key: '/posts',
+        icon: <FileTextOutlined />,
+        label: t('nav.posts'),
+      },
+      {
+        key: '/authors',
+        icon: <TeamOutlined />,
+        label: t('nav.authors'),
+      },
+      {
+        key: '/tags',
+        icon: <TagsOutlined />,
+        label: t('nav.tags'),
+      },
+    ],
+    [t],
+  )
 
   const selectedKey =
-    MENU_ITEMS?.find((item) =>
+    menuItems?.find((item) =>
       item && 'key' in item && typeof item.key === 'string'
         ? location.pathname.startsWith(item.key)
         : false,
@@ -59,7 +65,7 @@ export function Sidebar() {
         theme="dark"
         mode="inline"
         selectedKeys={[selectedKey]}
-        items={MENU_ITEMS}
+        items={menuItems}
         onClick={({ key }) => history.push(key)}
         style={{ padding: '8px 12px', background: 'transparent' }}
       />

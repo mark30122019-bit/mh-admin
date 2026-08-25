@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { PostFormInput } from '@/api'
 import { Button, Form, Input, Modal, Select, message } from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
+import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
@@ -44,6 +45,7 @@ export function PostFormModal({
   onClose,
 }: PostFormModalProps) {
   const dispatch = useDispatch()
+  const { t, lang } = useTranslation()
   const [form] = Form.useForm<PostFormValues>()
   const [previewFile, setPreviewFile] = useState<File | undefined>()
   const [fileList, setFileList] = useState<UploadFile[]>([])
@@ -94,12 +96,12 @@ export function PostFormModal({
     ) {
       options.unshift({
         value: orphanAuthorId,
-        label: formatDeletedEntityLabel(orphanAuthorId),
+        label: formatDeletedEntityLabel(orphanAuthorId, lang),
       })
     }
 
     return options
-  }, [authorOptions, detail?.author?.id])
+  }, [authorOptions, detail?.author?.id, lang])
 
   const tagSelectOptions = useMemo(
     () =>
@@ -168,28 +170,28 @@ export function PostFormModal({
     setFileList([])
     setExistingPreviewUrl(detail.previewPicture?.url ?? null)
     setPreviewError(
-      detail.previewPicture?.url ? null : 'Загрузите превью поста',
+      detail.previewPicture?.url ? null : t('posts.previewRequired'),
     )
-  }, [detail, editingId, form, open])
+  }, [detail, editingId, form, open, t])
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
-      message.success(editingId ? 'Post updated' : 'Post created')
+      message.success(editingId ? t('posts.updated') : t('posts.created'))
       onClose()
     }
     wasSavingRef.current = saving
-  }, [editingId, onClose, saveError, saving])
+  }, [editingId, onClose, saveError, saving, t])
 
   const clearPreview = () => {
     setPreviewFile(undefined)
     setFileList([])
     setExistingPreviewUrl(null)
-    setPreviewError('Загрузите превью поста')
+    setPreviewError(t('posts.previewRequired'))
   }
 
   const handleSubmit = (values: PostFormValues) => {
     if (!hasPreview) {
-      setPreviewError('Загрузите превью поста')
+      setPreviewError(t('posts.previewRequired'))
       return
     }
 
@@ -206,7 +208,7 @@ export function PostFormModal({
 
   return (
     <Modal
-      title={editingId ? 'Edit post' : 'New post'}
+      title={editingId ? t('posts.editPost') : t('posts.newPost')}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -220,48 +222,48 @@ export function PostFormModal({
         disabled={detailLoading || referencesLoading}
       >
         <Form.Item
-          label="Title"
+          label={t('posts.postTitle')}
           name="title"
-          rules={[{ required: true, message: 'Enter title' }]}
+          rules={[{ required: true, message: t('posts.enterTitle') }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item
-          label="Author"
+          label={t('posts.author')}
           name="authorId"
-          rules={[{ required: true, message: 'Select author' }]}
+          rules={[{ required: true, message: t('posts.selectAuthor') }]}
         >
           <Select
             loading={referencesLoading}
             options={authorSelectOptions}
-            placeholder="Выберите автора"
+            placeholder={t('posts.selectAuthor')}
             showSearch
             optionFilterProp="label"
           />
         </Form.Item>
 
-        <Form.Item label="Tags" name="tagIds">
+        <Form.Item label={t('posts.tags')} name="tagIds">
           <Select
             mode="multiple"
             loading={referencesLoading}
             options={tagSelectOptions}
-            placeholder="Выберите теги"
+            placeholder={t('posts.selectTags')}
             // Удалённые теги без option отобразятся как ID —
             // админ может снять их крестиком перед сохранением.
           />
         </Form.Item>
 
         <Form.Item
-          label="Text"
+          label={t('posts.text')}
           name="text"
-          rules={[{ required: true, message: 'Enter text' }]}
+          rules={[{ required: true, message: t('posts.enterText') }]}
         >
           <Input.TextArea rows={6} />
         </Form.Item>
 
         <Form.Item
-          label="Preview picture"
+          label={t('posts.previewPicture')}
           required
           validateStatus={previewError ? 'error' : undefined}
           help={previewError ?? undefined}
@@ -270,7 +272,7 @@ export function PostFormModal({
             accept={IMAGE_ACCEPT}
             beforeUpload={(file) => {
               if (!file.type.startsWith('image/')) {
-                setPreviewError('Выберите изображение')
+                setPreviewError(t('posts.selectImage'))
                 return Upload.LIST_IGNORE
               }
 
@@ -296,7 +298,7 @@ export function PostFormModal({
             listType="picture"
             showUploadList={{ showPreviewIcon: false }}
           >
-            <Button icon={<UploadOutlined />}>Select file</Button>
+            <Button icon={<UploadOutlined />}>{t('posts.selectFile')}</Button>
           </Upload>
 
           {previewUrl ? (
@@ -318,7 +320,7 @@ export function PostFormModal({
                   onClick={clearPreview}
                   style={{ padding: 0 }}
                 >
-                  Remove preview
+                  {t('posts.removePreview')}
                 </Button>
               </div>
             </div>
@@ -326,14 +328,14 @@ export function PostFormModal({
             <div
               style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)', fontSize: 13 }}
             >
-              Обязательное поле. JPG, PNG, WEBP или GIF.
+              {t('posts.previewHint')}
             </div>
           )}
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
           <Button onClick={onClose} style={{ marginRight: 8 }}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             type="primary"
@@ -341,7 +343,7 @@ export function PostFormModal({
             loading={saving}
             disabled={!hasPreview || detailLoading || referencesLoading}
           >
-            Save
+            {t('common.save')}
           </Button>
         </Form.Item>
       </Form>

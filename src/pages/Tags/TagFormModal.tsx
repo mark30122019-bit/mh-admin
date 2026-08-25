@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import type { TagFormInput } from '@/api'
 import { Button, Form, Input, Modal, message } from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
+import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
 import type { TagsModuleState } from '@/modules/tags/tags.module'
 import {
@@ -26,6 +27,7 @@ type TagFormModalProps = {
 
 export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
   const dispatch = useDispatch()
+  const { t } = useTranslation()
   const [form] = Form.useForm<TagFormValues>()
   const wasSavingRef = useRef(false)
 
@@ -69,11 +71,11 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
-      message.success(editingId ? 'Tag updated' : 'Tag created')
+      message.success(editingId ? t('tags.updated') : t('tags.created'))
       onClose()
     }
     wasSavingRef.current = saving
-  }, [editingId, onClose, saveError, saving])
+  }, [editingId, onClose, saveError, saving, t])
 
   const handleSubmit = (values: TagFormValues) => {
     const rawSort = values.sort
@@ -90,7 +92,7 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
 
   return (
     <Modal
-      title={editingId ? 'Edit tag' : 'New tag'}
+      title={editingId ? t('tags.editTag') : t('tags.newTag')}
       open={open}
       onCancel={onClose}
       footer={null}
@@ -104,23 +106,23 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
         disabled={detailLoading}
       >
         <Form.Item
-          label="Name"
+          label={t('tags.name')}
           name="name"
-          rules={[{ required: true, message: 'Enter name' }]}
+          rules={[{ required: true, message: t('tags.enterName') }]}
         >
           <Input />
         </Form.Item>
 
-        <Form.Item label="Приоритет" name="sort">
-          <Input type="number" placeholder="Необязательно" />
+        <Form.Item label={t('tags.priority')} name="sort">
+          <Input type="number" placeholder={t('common.optional')} />
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
           <Button onClick={onClose} style={{ marginRight: 8 }}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button type="primary" htmlType="submit" loading={saving}>
-            Save
+            {t('common.save')}
           </Button>
         </Form.Item>
       </Form>

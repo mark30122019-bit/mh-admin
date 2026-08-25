@@ -2,6 +2,7 @@ import { Avatar, Layout } from 'antd'
 import type { ReactNode } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button } from '@/components/ui'
+import { useTranslation } from '@/hooks/useTranslation'
 import { authActions } from '@/modules/auth/actions'
 import type { AuthModuleState } from '@/modules/auth/auth.module'
 import {
@@ -9,6 +10,7 @@ import {
   selectAuthInitials,
 } from '@/modules/auth/selectors'
 import { AppHeader } from './Header'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { Sidebar } from './Sidebar'
 
 const { Content } = Layout
@@ -19,6 +21,7 @@ type MainLayoutProps = {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const dispatch = useDispatch()
+  const { t } = useTranslation()
   const displayName = useSelector((state: AuthModuleState) =>
     selectAuthDisplayName(state),
   )
@@ -48,10 +51,17 @@ export function MainLayout({ children }: MainLayoutProps) {
               >
                 {initials}
               </Avatar>
-              <span style={{ fontWeight: 500, color: '#262626' }}>{displayName}</span>
+              <span style={{ fontWeight: 500, color: '#262626' }}>
+                {displayName}
+              </span>
             </>
           }
-          actionsSlot={<Button onClick={handleLogout}>Logout</Button>}
+          actionsSlot={
+            <>
+              <LanguageSwitcher />
+              <Button onClick={handleLogout}>{t('common.logout')}</Button>
+            </>
+          }
         />
         <Content
           style={{

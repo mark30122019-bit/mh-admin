@@ -24,6 +24,7 @@ import {
   message,
   notification,
 } from '@/components/ui'
+import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
 import { getPostsModule } from '@/modules/posts/posts.module'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
@@ -49,11 +50,11 @@ import { PostFormModal } from './PostFormModal'
 
 type PostTableRow = PostListItem | TablePlaceholderRow
 
-function formatCreatedAt(value: string): string {
+function formatCreatedAt(value: string, locale: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -62,6 +63,8 @@ function formatCreatedAt(value: string): string {
 
 function PostsPageContent() {
   const dispatch = useDispatch()
+  const { t, lang } = useTranslation()
+  const dateLocale = lang === 'ru' ? 'ru-RU' : 'en-US'
   const items = useSelector((state: PostsModuleState) => selectPostsItems(state))
   const pagination = useSelector((state: PostsModuleState) =>
     selectPostsPagination(state),
@@ -85,45 +88,54 @@ function PostsPageContent() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const prevDeletingIdRef = useRef<number | null>(null)
+  const pageRef = useRef(pagination.currentPage)
+  pageRef.current = pagination.currentPage
 
   useEffect(() => {
     if (!error) return
-    notification.error({ message: 'Failed to load posts', description: error })
-  }, [error])
+    notification.error({ message: t('posts.loadFailed'), description: error })
+  }, [error, t])
+
+  // После удаления автора/тега модуль posts может остаться со старым справочником —
+  // при каждом заходе на страницу обновляем references и список.
+  useEffect(() => {
+    dispatch(postsActions.referencesRequest())
+    dispatch(postsActions.fetchRequest(pageRef.current))
+  }, [dispatch])
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
-      message.success('Post deleted')
+      message.success(t('posts.deleted'))
     }
     prevDeletingIdRef.current = deletingId
-  }, [deletingId])
+  }, [deletingId, t])
 
   const authorOptions = useMemo(() => {
     const uniqueAuthors = Array.from(
       new Set(
         items
-          .map((item) => resolvePostAuthorLabel(item, authorCatalog))
+          .map((item) => resolvePostAuthorLabel(item, authorCatalog, lang).label)
           .filter(Boolean),
       ),
     ).sort()
 
     return [
-      { value: 'all', label: 'All authors' },
+      { value: 'all', label: t('posts.allAuthors') },
       ...uniqueAuthors.map((author) => ({ value: author, label: author })),
     ]
-  }, [authorCatalog, items])
+  }, [authorCatalog, items, lang, t])
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const matchesSearch = item.title
         .toLowerCase()
         .includes(search.trim().toLowerCase())
-      const authorLabel = resolvePostAuthorLabel(item, authorCatalog)
+      const authorLabel = resolvePostAuthorLabel(item, authorCatalog, lang).label
       const matchesAuthor =
         authorFilter === 'all' || authorLabel === authorFilter
       return matchesSearch && matchesAuthor
     })
-  }, [authorCatalog, authorFilter, items, search])
+  }, [authorCatalog, authorFilter, items, lang, search])
 
   const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
   const isFirstPage = pagination.currentPage === 1
@@ -149,10 +161,10 @@ function PostsPageContent() {
   const confirmDelete = useCallback(
     (id: number) => {
       Modal.confirm({
-        title: 'Delete this post?',
-        content: 'Это действие нельзя отменить.',
-        okText: 'Удалить',
-        cancelText: 'Отмена',
+        title: t('posts.deleteConfirmTitle'),
+        content: t('posts.deleteConfirmContent'),
+        okText: t('common.delete'),
+        cancelText: t('common.cancel'),
         okButtonProps: { danger: true },
         centered: true,
         onOk: () => {
@@ -160,127 +172,129 @@ function PostsPageContent() {
         },
       })
     },
-    [dispatch, pagination.currentPage],
+    [dispatch, pagination.currentPage, t],
   )
 
   const columns: ColumnsType<PostTableRow> = useMemo(
     () => [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 72,
-      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
-    },
-    {
-      title: 'Preview',
-      dataIndex: 'previewPicture',
-      width: 88,
-      render: (_, record) => {
-        if (isTablePlaceholderRow(record)) return null
-        const url = record.previewPicture?.url
-        if (!url) {
+      {
+        title: 'ID',
+        dataIndex: 'id',
+        width: 72,
+        render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+      },
+      {
+        title: t('posts.preview'),
+        dataIndex: 'previewPicture',
+        width: 88,
+        render: (_, record) => {
+          if (isTablePlaceholderRow(record)) return null
+          const url = record.previewPicture?.url
+          if (!url) {
+            return (
+              <span style={{ color: 'rgba(0, 0, 0, 0.25)', fontSize: 12 }}>
+                —
+              </span>
+            )
+          }
           return (
-            <span style={{ color: 'rgba(0, 0, 0, 0.25)', fontSize: 12 }}>
-              —
-            </span>
-          )
-        }
-        return (
-          <img
-            src={url}
-            alt={record.title}
-            width={56}
-            height={40}
-            style={{
-              objectFit: 'cover',
-              borderRadius: 6,
-              display: 'block',
-              background: '#f5f5f5',
-            }}
-          />
-        )
-      },
-    },
-    {
-      title: 'Title',
-      dataIndex: 'title',
-      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
-    },
-    {
-      title: 'Author',
-      dataIndex: 'authorName',
-      width: 180,
-      render: (_, record) => {
-        if (isTablePlaceholderRow(record)) return null
-        const label = resolvePostAuthorLabel(record, authorCatalog)
-        const isOrphan = label.includes('(Удален)')
-        return (
-          <span style={isOrphan ? { color: '#cf1322' } : undefined}>
-            {label}
-          </span>
-        )
-      },
-    },
-    {
-      title: 'Tags',
-      dataIndex: 'tagNames',
-      width: 200,
-      render: (_, record) => {
-        if (isTablePlaceholderRow(record)) return null
-        const resolvedTags = resolvePostTagLabels(record, tagCatalog)
-        if (resolvedTags.length === 0) {
-          return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
-        }
-        return (
-          <Space wrap size={[4, 4]}>
-            {resolvedTags.map((tag) => (
-              <Tag
-                key={tag.key}
-                color={tag.orphan ? 'error' : undefined}
-              >
-                {tag.label}
-              </Tag>
-            ))}
-          </Space>
-        )
-      },
-    },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      width: 140,
-      render: (value: string, record) =>
-        isTablePlaceholderRow(record) ? null : formatCreatedAt(value),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      width: 100,
-      render: (_, record) => {
-        if (isTablePlaceholderRow(record)) return null
-
-        return (
-          <Space size={4}>
-            <Button
-              type="text"
-              icon={<EditOutlined style={{ color: '#595959' }} />}
-              onClick={() => {
-                setEditingId(record.id)
-                setModalOpen(true)
+            <img
+              src={url}
+              alt={record.title}
+              width={56}
+              height={40}
+              style={{
+                objectFit: 'cover',
+                borderRadius: 6,
+                display: 'block',
+                background: '#f5f5f5',
               }}
             />
-            <Button
-              type="text"
-              loading={deletingId === record.id}
-              icon={<DeleteOutlined style={{ color: '#ff7875' }} />}
-              onClick={() => confirmDelete(record.id)}
-            />
-          </Space>
-        )
+          )
+        },
       },
-    },
-  ],
-    [authorCatalog, confirmDelete, deletingId, tagCatalog],
+      {
+        title: t('posts.postTitle'),
+        dataIndex: 'title',
+        render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+      },
+      {
+        title: t('posts.author'),
+        dataIndex: 'authorName',
+        width: 180,
+        render: (_, record) => {
+          if (isTablePlaceholderRow(record)) return null
+          const { label, orphan } = resolvePostAuthorLabel(
+            record,
+            authorCatalog,
+            lang,
+          )
+          return (
+            <span style={orphan ? { color: '#cf1322' } : undefined}>
+              {label}
+            </span>
+          )
+        },
+      },
+      {
+        title: t('posts.tags'),
+        dataIndex: 'tagNames',
+        width: 200,
+        render: (_, record) => {
+          if (isTablePlaceholderRow(record)) return null
+          const resolvedTags = resolvePostTagLabels(record, tagCatalog, lang)
+          if (resolvedTags.length === 0) {
+            return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
+          }
+          return (
+            <Space wrap size={[4, 4]}>
+              {resolvedTags.map((tag) => (
+                <Tag key={tag.key} color={tag.orphan ? 'error' : undefined}>
+                  {tag.label}
+                </Tag>
+              ))}
+            </Space>
+          )
+        },
+      },
+      {
+        title: t('common.createdAt'),
+        dataIndex: 'createdAt',
+        width: 140,
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record)
+            ? null
+            : formatCreatedAt(value, dateLocale),
+      },
+      {
+        title: t('common.actions'),
+        key: 'actions',
+        width: 100,
+        render: (_, record) => {
+          if (isTablePlaceholderRow(record)) return null
+
+          return (
+            <Space size={4}>
+              <Button
+                type="text"
+                icon={<EditOutlined style={{ color: '#595959' }} />}
+                onClick={() => {
+                  setEditingId(record.id)
+                  setModalOpen(true)
+                }}
+              />
+              <Button
+                type="text"
+                loading={deletingId === record.id}
+                icon={<DeleteOutlined style={{ color: '#ff7875' }} />}
+                onClick={() => confirmDelete(record.id)}
+              />
+            </Space>
+          )
+        },
+      },
+    ],
+    [authorCatalog, confirmDelete, dateLocale, deletingId, lang, t, tagCatalog],
   )
 
   return (
@@ -301,10 +315,10 @@ function PostsPageContent() {
           }}
         >
           <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
-            Posts
+            {t('posts.title')}
           </Typography.Title>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
-            New post
+            {t('posts.newPost')}
           </Button>
         </div>
 
@@ -317,7 +331,7 @@ function PostsPageContent() {
           }}
         >
           <Input.Search
-            placeholder="Search by title"
+            placeholder={t('posts.searchPlaceholder')}
             allowClear
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -349,7 +363,9 @@ function PostsPageContent() {
                 ? 'table-row-placeholder'
                 : undefined,
             })}
-            locale={{ emptyText: loading ? 'Loading…' : 'No posts' }}
+            locale={{
+              emptyText: loading ? t('common.loading') : t('posts.noPosts'),
+            }}
           />
         </div>
 
@@ -363,7 +379,7 @@ function PostsPageContent() {
           }}
         >
           <Typography.Text type="secondary">
-            {pagination.totalCount} posts
+            {t('posts.count', { count: pagination.totalCount })}
           </Typography.Text>
           <Pagination
             current={pagination.currentPage}

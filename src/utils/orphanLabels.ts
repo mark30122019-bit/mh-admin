@@ -1,13 +1,18 @@
 import type { AuthorListItem, TagListItem } from '@/api'
+import { translate } from '@/i18n'
+import type { AppLanguage } from '@/modules/app/types'
 import { idsEqual, toEntityId } from '@/utils/entityId'
 
 /** Метка удалённой сущности для Safe Render / Select. */
-export function formatDeletedEntityLabel(id?: number | string | null): string {
+export function formatDeletedEntityLabel(
+  id?: number | string | null,
+  lang: AppLanguage = 'ru',
+): string {
   const parsed = toEntityId(id)
   if (parsed != null) {
-    return `ID: ${parsed} (Удален)`
+    return translate(lang, 'orphan.deletedWithId', { id: parsed })
   }
-  return 'Удален'
+  return translate(lang, 'orphan.deleted')
 }
 
 type PostAuthorFields = {
@@ -57,47 +62,9 @@ function authorNameMatches(author: AuthorListItem, label: string): boolean {
   return variants.has(normalized)
 }
 
-/**
- * Безопасный вывод автора поста относительно актуального списка авторов.
- * Не обращается к полям удалённого объекта напрямую.
- * ID сравниваются через Number — бэкенд часто отдаёт строку вместо числа.
- */
-export function resolvePostAuthorLabel(
-  post: PostAuthorFields,
-  authors: AuthorListItem[],
-): string {
-  const authorId = toEntityId(post.authorId)
-
-  if (authorId != null) {
-    const found = authors.find((author) => idsEqual(author.id, authorId))
-    if (found) {
-      return (
-        formatAuthorDisplayName(found) || formatDeletedEntityLabel(authorId)
-      )
-    }
-
-    const fallbackName = post.authorName?.trim()
-    if (fallbackName) {
-      return `${fallbackName} (Удален)`
-    }
-    return formatDeletedEntityLabel(authorId)
-  }
-
-  const name = post.authorName?.trim()
-  if (!name) {
-    return formatDeletedEntityLabel(null)
-  }
-
-  if (authors.length === 0) {
-    return name
-  }
-
-  const found = authors.find((author) => authorNameMatches(author, name))
-  if (found) {
-    return formatAuthorDisplayName(found) || name
-  }
-
-  return `${name} (Удален)`
+export type ResolvedPostAuthor = {
+  label: string
+  orphan: boolean
 }
 
 export type ResolvedPostTag = {
@@ -107,12 +74,68 @@ export type ResolvedPostTag = {
 }
 
 /**
+ * Безопасный вывод автора поста относительно актуального списка авторов.
+ * Не обращается к полям удалённого объекта напрямую.
+ * ID сравниваются через Number — бэкенд часто отдаёт строку вместо числа.
+ */
+export function resolvePostAuthorLabel(
+  post: PostAuthorFields,
+  authors: AuthorListItem[],
+  lang: AppLanguage = 'ru',
+): ResolvedPostAuthor {
+  const authorId = toEntityId(post.authorId)
+
+  if (authorId != null) {
+    const found = authors.find((author) => idsEqual(author.id, authorId))
+    if (found) {
+      const label = formatAuthorDisplayName(found)
+      if (label) {
+        return { label, orphan: false }
+      }
+      return { label: formatDeletedEntityLabel(authorId, lang), orphan: true }
+    }
+
+    const fallbackName = post.authorName?.trim()
+    if (fallbackName) {
+      return {
+        label: translate(lang, 'orphan.deletedWithName', { name: fallbackName }),
+        orphan: true,
+      }
+    }
+    return { label: formatDeletedEntityLabel(authorId, lang), orphan: true }
+  }
+
+  const name = post.authorName?.trim()
+  if (!name) {
+    return { label: formatDeletedEntityLabel(null, lang), orphan: true }
+  }
+
+  if (authors.length === 0) {
+    return { label: name, orphan: false }
+  }
+
+  const found = authors.find((author) => authorNameMatches(author, name))
+  if (found) {
+    return {
+      label: formatAuthorDisplayName(found) || name,
+      orphan: false,
+    }
+  }
+
+  return {
+    label: translate(lang, 'orphan.deletedWithName', { name }),
+    orphan: true,
+  }
+}
+
+/**
  * Безопасный вывод тегов поста: сверяем с актуальным списком в сторе.
  * ID сравниваются через Number (string vs number с API).
  */
 export function resolvePostTagLabels(
   post: PostTagFields,
   tags: TagListItem[],
+  lang: AppLanguage = 'ru',
 ): ResolvedPostTag[] {
   const tagIds = post.tagIds ?? []
   const tagNames = post.tagNames ?? []
@@ -132,8 +155,8 @@ export function resolvePostTagLabels(
       return {
         key: `tag-orphan-${parsedId ?? id}`,
         label: fallbackName
-          ? `${fallbackName} (Удален)`
-          : formatDeletedEntityLabel(parsedId),
+          ? translate(lang, 'orphan.deletedWithName', { name: fallbackName })
+          : formatDeletedEntityLabel(parsedId, lang),
         orphan: true,
       }
     })
@@ -144,7 +167,7 @@ export function resolvePostTagLabels(
     if (!trimmed) {
       return {
         key: `tag-empty-${index}`,
-        label: formatDeletedEntityLabel(null),
+        label: formatDeletedEntityLabel(null, lang),
         orphan: true,
       }
     }
@@ -156,7 +179,9 @@ export function resolvePostTagLabels(
     const found = tags.some((tag) => tag.name === trimmed)
     return {
       key: `tag-name-${index}-${trimmed}`,
-      label: found ? trimmed : `${trimmed} (Удален)`,
+      label: found
+        ? trimmed
+        : translate(lang, 'orphan.deletedWithName', { name: trimmed }),
       orphan: !found,
     }
   })

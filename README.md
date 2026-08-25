@@ -77,6 +77,16 @@ src/
 - **Теги** — в таблице отсутствующие теги помечаются как удалённые; в `Select mode="multiple"` «голые» ID можно снять крестиком перед сохранением.
 - **Приоритет тега (`sort`)** — поле необязательное: часть тегов на бэкенде его не содержит, форма и таблица это допускают (`—` в списке, пустое значение не уходит в FormData).
 
+## Интернационализация (i18n)
+
+Гибридная схема **Redux + localStorage**, синхронизированная с Ant Design:
+
+- Глобальный модуль `modules/app` хранит `language: 'ru' | 'en'` (старт из `localStorage.app_lang`, фолбек `ru`).
+- Экшен `changeLanguage` обновляет Redux и сразу пишет язык в `localStorage`.
+- `AppConfigProvider` читает язык и передаёт `locale={ruRU | enUS}` в Ant Design `ConfigProvider`.
+- Кастомные строки — через хук `useTranslation()` и словари `src/i18n/dictionaries.ts`.
+- Переключатель RU/EN — в шапке (`LanguageSwitcher`) и на экране логина.
+
 ## Маршруты
 
 | Путь | Страница | Статус |
@@ -117,3 +127,4 @@ src/
 - [x] Защита от данных-сирот (Safe Render, Select, нормализация ID)
 - [x] Опциональный `sort` у тегов
 - [x] ФИО автора в формате API (`Last name Name Second name`)
+- [x] i18n (Redux + localStorage + Ant Design locale)

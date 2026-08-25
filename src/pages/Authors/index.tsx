@@ -16,6 +16,7 @@ import {
   message,
   notification,
 } from '@/components/ui'
+import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
 import { getAuthorsModule } from '@/modules/authors/authors.module'
 import type { AuthorsModuleState } from '@/modules/authors/authors.module'
@@ -34,10 +35,10 @@ import { AuthorFormModal } from './AuthorFormModal'
 
 type AuthorTableRow = AuthorListItem | TablePlaceholderRow
 
-function formatDate(value: string): string {
+function formatDate(value: string, locale: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -80,6 +81,8 @@ function AuthorAvatar({ author }: { author: AuthorListItem }) {
 
 function AuthorsPageContent() {
   const dispatch = useDispatch()
+  const { t, lang } = useTranslation()
+  const dateLocale = lang === 'ru' ? 'ru-RU' : 'en-US'
   const items = useSelector((state: AuthorsModuleState) =>
     selectAuthorsItems(state),
   )
@@ -107,15 +110,15 @@ function AuthorsPageContent() {
 
   useEffect(() => {
     if (!error) return
-    notification.error({ message: 'Failed to load authors', description: error })
-  }, [error])
+    notification.error({ message: t('authors.loadFailed'), description: error })
+  }, [error, t])
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
-      message.success('Author deleted')
+      message.success(t('authors.deleted'))
     }
     prevDeletingIdRef.current = deletingId
-  }, [deletingId])
+  }, [deletingId, t])
 
   const pageItems = useMemo(() => {
     const start = (page - 1) * pageSize
@@ -125,10 +128,10 @@ function AuthorsPageContent() {
   const confirmDelete = useCallback(
     (id: number) => {
       Modal.confirm({
-        title: 'Delete this author?',
-        content: 'Это действие нельзя отменить.',
-        okText: 'Удалить',
-        cancelText: 'Отмена',
+        title: t('authors.deleteConfirmTitle'),
+        content: t('authors.deleteConfirmContent'),
+        okText: t('common.delete'),
+        cancelText: t('common.cancel'),
         okButtonProps: { danger: true },
         centered: true,
         onOk: () => {
@@ -136,7 +139,7 @@ function AuthorsPageContent() {
         },
       })
     },
-    [dispatch],
+    [dispatch, t],
   )
 
   const columns: ColumnsType<AuthorTableRow> = useMemo(
@@ -149,7 +152,7 @@ function AuthorsPageContent() {
           isTablePlaceholderRow(record) ? null : value,
       },
       {
-        title: 'Avatar',
+        title: t('authors.avatar'),
         key: 'avatar',
         width: 72,
         render: (_, record) => {
@@ -158,26 +161,26 @@ function AuthorsPageContent() {
         },
       },
       {
-        title: 'Name',
+        title: t('authors.name'),
         dataIndex: 'name',
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
-        title: 'Last name',
+        title: t('authors.lastName'),
         dataIndex: 'lastName',
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
-        title: 'Second name',
+        title: t('authors.secondName'),
         dataIndex: 'secondName',
         width: 140,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
-        title: 'Short description',
+        title: t('authors.shortDescription'),
         dataIndex: 'shortDescription',
         ellipsis: true,
         render: (value: string | undefined, record) => {
@@ -196,14 +199,14 @@ function AuthorsPageContent() {
         },
       },
       {
-        title: 'Created At',
+        title: t('common.createdAt'),
         dataIndex: 'createdAt',
         width: 140,
         render: (value: string, record) =>
-          isTablePlaceholderRow(record) ? null : formatDate(value),
+          isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
       },
       {
-        title: 'Actions',
+        title: t('common.actions'),
         key: 'actions',
         width: 100,
         render: (_, record) => {
@@ -230,7 +233,7 @@ function AuthorsPageContent() {
         },
       },
     ],
-    [confirmDelete, deletingId],
+    [confirmDelete, dateLocale, deletingId, t],
   )
 
   return (
@@ -251,7 +254,7 @@ function AuthorsPageContent() {
           }}
         >
           <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
-            Authors
+            {t('authors.title')}
           </Typography.Title>
           <Button
             type="primary"
@@ -261,7 +264,7 @@ function AuthorsPageContent() {
               setModalOpen(true)
             }}
           >
-            New author
+            {t('authors.newAuthor')}
           </Button>
         </div>
 
@@ -275,7 +278,9 @@ function AuthorsPageContent() {
               ? 'table-row-placeholder'
               : undefined,
           })}
-          locale={{ emptyText: loading ? 'Loading…' : 'No authors' }}
+          locale={{
+            emptyText: loading ? t('common.loading') : t('authors.noAuthors'),
+          }}
         />
 
         <div
@@ -288,7 +293,7 @@ function AuthorsPageContent() {
           }}
         >
           <Typography.Text type="secondary">
-            {items.length} authors
+            {t('authors.count', { count: items.length })}
           </Typography.Text>
           <Pagination
             current={page}

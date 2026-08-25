@@ -1,13 +1,15 @@
 import { Typography } from 'antd'
+import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button, Form, Input, notification } from '@/components/ui'
+import { LanguageSwitcher } from '@/components/Layout/LanguageSwitcher'
+import { useTranslation } from '@/hooks/useTranslation'
 import { authActions } from '@/modules/auth/actions'
 import type { AuthModuleState } from '@/modules/auth/auth.module'
 import {
   selectAuthError,
   selectAuthLoading,
 } from '@/modules/auth/selectors'
-import { useEffect } from 'react'
 
 type LoginFormValues = {
   email: string
@@ -16,6 +18,7 @@ type LoginFormValues = {
 
 export default function LoginPage() {
   const dispatch = useDispatch()
+  const { t } = useTranslation()
   const [form] = Form.useForm<LoginFormValues>()
   const loading = useSelector((state: AuthModuleState) => selectAuthLoading(state))
   const error = useSelector((state: AuthModuleState) => selectAuthError(state))
@@ -24,10 +27,10 @@ export default function LoginPage() {
     if (!error) return
 
     notification.error({
-      message: 'Sign in failed',
+      message: t('login.failed'),
       description: error,
     })
-  }, [error])
+  }, [error, t])
 
   const onFinish = (values: LoginFormValues) => {
     dispatch(authActions.loginRequest(values))
@@ -35,7 +38,11 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f0f2f5] px-4">
-      <div className="w-full max-w-[420px] rounded-lg bg-white p-10 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+      <div className="relative w-full max-w-[420px] rounded-lg bg-white p-10 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+        <div className="absolute right-6 top-6">
+          <LanguageSwitcher />
+        </div>
+
         <Typography.Text
           strong
           style={{ color: '#1677ff', fontSize: 15, display: 'block', marginBottom: 28 }}
@@ -44,11 +51,11 @@ export default function LoginPage() {
         </Typography.Text>
 
         <Typography.Title level={2} style={{ margin: '0 0 8px', fontWeight: 700 }}>
-          Sign in
+          {t('login.title')}
         </Typography.Title>
 
         <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 32 }}>
-          Enter your credentials to continue.
+          {t('login.subtitle')}
         </Typography.Text>
 
         <Form<LoginFormValues>
@@ -59,20 +66,20 @@ export default function LoginPage() {
           autoComplete="off"
         >
           <Form.Item
-            label="Email"
+            label={t('login.email')}
             name="email"
             rules={[
-              { required: true, message: 'Enter your email' },
-              { type: 'email', message: 'Invalid email address' },
+              { required: true, message: t('login.emailRequired') },
+              { type: 'email', message: t('login.emailInvalid') },
             ]}
           >
             <Input placeholder="you@example.com" size="large" />
           </Form.Item>
 
           <Form.Item
-            label="Password"
+            label={t('login.password')}
             name="password"
-            rules={[{ required: true, message: 'Enter your password' }]}
+            rules={[{ required: true, message: t('login.passwordRequired') }]}
           >
             <Input.Password placeholder="••••••••" size="large" />
           </Form.Item>
@@ -85,7 +92,7 @@ export default function LoginPage() {
               block
               loading={loading}
             >
-              Sign in
+              {t('login.submit')}
             </Button>
           </Form.Item>
         </Form>
