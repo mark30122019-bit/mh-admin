@@ -8,6 +8,10 @@ import { Button, Form, Input, Modal, Select, message } from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
+import {
+  RichTextEditor,
+  isRichTextEmpty,
+} from '@/modules/posts/components/RichTextEditor'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
   selectPostDetail,
@@ -257,9 +261,18 @@ export function PostFormModal({
         <Form.Item
           label={t('posts.text')}
           name="text"
-          rules={[{ required: true, message: t('posts.enterText') }]}
+          rules={[
+            {
+              validator: (_, value: string) =>
+                isRichTextEmpty(value)
+                  ? Promise.reject(new Error(t('posts.enterText')))
+                  : Promise.resolve(),
+            },
+          ]}
+          trigger="onChange"
+          validateTrigger="onChange"
         >
-          <Input.TextArea rows={6} />
+          <RichTextEditor />
         </Form.Item>
 
         <Form.Item
