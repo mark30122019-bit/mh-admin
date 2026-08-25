@@ -13,6 +13,7 @@ import {
   selectTagsSaveFieldErrors,
   selectTagsSaving,
 } from '@/modules/tags/selectors'
+import { FIELD_MAX_LENGTH, resolveInputMaxLength } from '@/utils/fieldMaxLength'
 
 type TagFormValues = {
   name: string
@@ -47,6 +48,8 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
   )
 
   useFormApiErrors(form, formFieldErrors, saveError, 'Tag')
+
+  const watchedName = Form.useWatch('name', form)
 
   useEffect(() => {
     if (!open) return
@@ -110,11 +113,17 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
           name="name"
           rules={[{ required: true, message: t('tags.enterName') }]}
         >
-          <Input />
+          <Input
+            showCount
+            maxLength={resolveInputMaxLength(
+              FIELD_MAX_LENGTH.tagName,
+              watchedName,
+            )}
+          />
         </Form.Item>
 
         <Form.Item label={t('tags.priority')} name="sort">
-          <Input type="number" placeholder={t('common.optional')} />
+          <Input type="number" />
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

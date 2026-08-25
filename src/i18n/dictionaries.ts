@@ -9,7 +9,6 @@ export type TranslationDict = {
     createdAt: string
     search: string
     all: string
-    optional: string
     cropImage: string
     zoom: string
     apply: string
@@ -118,7 +117,6 @@ export const ru: TranslationDict = {
     createdAt: 'Создан',
     search: 'Поиск',
     all: 'Все',
-    optional: 'Необязательно',
     cropImage: 'Обрезка изображения',
     zoom: 'Масштаб',
     apply: 'Применить',
@@ -227,7 +225,6 @@ export const en: TranslationDict = {
     createdAt: 'Created At',
     search: 'Search',
     all: 'All',
-    optional: 'Optional',
     cropImage: 'Crop image',
     zoom: 'Zoom',
     apply: 'Apply',

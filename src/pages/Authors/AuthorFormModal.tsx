@@ -22,6 +22,7 @@ import {
   selectAuthorsSaving,
 } from '@/modules/authors/selectors'
 import { getAuthorInitials } from '@/utils/authorInitials'
+import { FIELD_MAX_LENGTH, resolveInputMaxLength } from '@/utils/fieldMaxLength'
 
 type AuthorFormValues = {
   name: string
@@ -78,6 +79,9 @@ export function AuthorFormModal({
   const avatarUrl = localAvatarUrl ?? (removeAvatar ? null : existingAvatarUrl)
   const watchedName = Form.useWatch('name', form)
   const watchedLastName = Form.useWatch('lastName', form)
+  const watchedSecondName = Form.useWatch('secondName', form)
+  const watchedShortDescription = Form.useWatch('shortDescription', form)
+  const watchedDescription = Form.useWatch('description', form)
   const avatarInitials = useMemo(
     () => getAuthorInitials(watchedName, watchedLastName),
     [watchedName, watchedLastName],
@@ -208,7 +212,13 @@ export function AuthorFormModal({
                 name="name"
                 rules={[{ required: true, message: t('authors.enterName') }]}
               >
-                <Input />
+                <Input
+                  showCount
+                  maxLength={resolveInputMaxLength(
+                    FIELD_MAX_LENGTH.authorName,
+                    watchedName,
+                  )}
+                />
               </Form.Item>
 
               <Form.Item
@@ -217,7 +227,13 @@ export function AuthorFormModal({
                 rules={[{ required: true, message: t('authors.enterLastName') }]}
                 style={{ marginBottom: 0 }}
               >
-                <Input />
+                <Input
+                  showCount
+                  maxLength={resolveInputMaxLength(
+                    FIELD_MAX_LENGTH.authorLastName,
+                    watchedLastName,
+                  )}
+                />
               </Form.Item>
             </div>
 
@@ -250,15 +266,35 @@ export function AuthorFormModal({
           </div>
 
           <Form.Item label={t('authors.secondName')} name="secondName" className="mt-4">
-            <Input />
+            <Input
+              showCount
+              maxLength={resolveInputMaxLength(
+                FIELD_MAX_LENGTH.authorSecondName,
+                watchedSecondName,
+              )}
+            />
           </Form.Item>
 
           <Form.Item label={t('authors.shortDescription')} name="shortDescription">
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+            <Input.TextArea
+              autoSize={{ minRows: 2, maxRows: 4 }}
+              showCount
+              maxLength={resolveInputMaxLength(
+                FIELD_MAX_LENGTH.authorShortDescription,
+                watchedShortDescription,
+              )}
+            />
           </Form.Item>
 
           <Form.Item label={t('authors.description')} name="description">
-            <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
+            <Input.TextArea
+              autoSize={{ minRows: 4, maxRows: 8 }}
+              showCount
+              maxLength={resolveInputMaxLength(
+                FIELD_MAX_LENGTH.authorDescription,
+                watchedDescription,
+              )}
+            />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

@@ -30,6 +30,7 @@ import {
   selectPostsTagOptions,
 } from '@/modules/posts/selectors'
 import { idsEqual, toEntityId } from '@/utils/entityId'
+import { FIELD_MAX_LENGTH, resolveInputMaxLength } from '@/utils/fieldMaxLength'
 import { formatDeletedEntityLabel, formatAuthorDisplayName } from '@/utils/orphanLabels'
 
 type PostFormValues = {
@@ -96,6 +97,7 @@ export function PostFormModal({
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
   const formBusy = detailLoading || referencesLoading
+  const watchedTitle = Form.useWatch('title', form)
 
   const authorSelectOptions = useMemo(() => {
     const options = authorOptions.map((author) => ({
@@ -267,7 +269,13 @@ export function PostFormModal({
                 name="title"
                 rules={[{ required: true, message: t('posts.enterTitle') }]}
               >
-                <Input />
+                <Input
+                  showCount
+                  maxLength={resolveInputMaxLength(
+                    FIELD_MAX_LENGTH.postTitle,
+                    watchedTitle,
+                  )}
+                />
               </Form.Item>
 
               <Form.Item
