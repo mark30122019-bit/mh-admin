@@ -1,8 +1,4 @@
-import {
-  FileTextOutlined,
-  TagsOutlined,
-  TeamOutlined,
-} from '@ant-design/icons'
+import { FileTextOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { useHistory, useLocation } from 'react-router-dom'
@@ -13,21 +9,14 @@ const MENU_ITEMS: MenuProps['items'] = [
   {
     key: '/posts',
     icon: <FileTextOutlined />,
-    label: 'Посты',
+    label: 'Posts Management',
   },
-  {
-    key: '/authors',
-    icon: <TeamOutlined />,
-    label: 'Авторы',
-  },
-  {
-    key: '/tags',
-    icon: <TagsOutlined />,
-    label: 'Теги',
-  },
+  // TODO: добавить Authors / Tags после вёрстки страниц
+  // { key: '/authors', icon: <TeamOutlined />, label: 'Authors' },
+  // { key: '/tags', icon: <TagsOutlined />, label: 'Tags' },
 ]
 
-/** Layout.Sider + Menu — навигация по разделам ТЗ. */
+/** Layout.Sider + Menu — навигация по разделам админки. */
 export function Sidebar() {
   const history = useHistory()
   const location = useLocation()
@@ -37,21 +26,28 @@ export function Sidebar() {
       item && 'key' in item && typeof item.key === 'string'
         ? location.pathname.startsWith(item.key)
         : false,
-    )?.key?.toString() ?? location.pathname
+    )?.key?.toString() ?? '/posts'
 
   return (
-    <Sider breakpoint="lg" collapsedWidth={64} width={220}>
+    <Sider
+      breakpoint="lg"
+      collapsedWidth={64}
+      width={240}
+      style={{ background: '#001529' }}
+    >
       <div
         style={{
           height: 64,
-          margin: 16,
+          padding: '0 24px',
           color: '#fff',
           fontWeight: 600,
+          fontSize: 16,
           display: 'flex',
           alignItems: 'center',
+          letterSpacing: '-0.02em',
         }}
       >
-        Machineheads
+        machineheads
       </div>
       <Menu
         theme="dark"
@@ -59,6 +55,7 @@ export function Sidebar() {
         selectedKeys={[selectedKey]}
         items={MENU_ITEMS}
         onClick={({ key }) => history.push(key)}
+        style={{ padding: '8px 12px', background: 'transparent' }}
       />
     </Sider>
   )

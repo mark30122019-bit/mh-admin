@@ -2,6 +2,7 @@ import { Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useState } from 'react'
 import { MainLayout } from '@/components/Layout'
+import { useHomeRedirect } from '@/routes/AuthRoute'
 import {
   Button,
   Form,
@@ -71,6 +72,9 @@ type DemoFormValues = {
 }
 
 export default function HomePage() {
+  // TODO(auth): после входа редирект на /posts, иначе на /login
+  useHomeRedirect()
+
   const [form] = Form.useForm<DemoFormValues>()
   const [modalOpen, setModalOpen] = useState(false)
   const [page, setPage] = useState(1)
@@ -167,7 +171,14 @@ export default function HomePage() {
   }
 
   return (
-    <MainLayout title="UI Kit — демо компонентов">
+    <MainLayout>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 8,
+          padding: '28px 32px',
+        }}
+      >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
           Песочница для проверки компонентов Ant Design из ТЗ. ConfigProvider
@@ -374,6 +385,7 @@ export default function HomePage() {
           </Form.Item>
         </Form>
       </Modal>
+      </div>
     </MainLayout>
   )
 }

@@ -1,32 +1,32 @@
-import { Layout, Space, Typography } from 'antd'
+import { Layout, Space } from 'antd'
 import type { ReactNode } from 'react'
 
 const { Header } = Layout
 
 type AppHeaderProps = {
-  title?: string
   profileSlot?: ReactNode
+  actionsSlot?: ReactNode
 }
 
-/** Layout.Header — заголовок раздела и слот профиля администратора. */
-export function AppHeader({
-  title = 'Админ-панель',
-  profileSlot,
-}: AppHeaderProps) {
+/** Layout.Header — профиль администратора слева, действия справа. */
+export function AppHeader({ profileSlot, actionsSlot }: AppHeaderProps) {
   return (
     <Header
       style={{
         background: '#fff',
-        paddingInline: 24,
+        paddingInline: 32,
+        height: 64,
+        lineHeight: '64px',
+        borderBottom: '1px solid #f0f0f0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}
     >
-      <Typography.Title level={4} style={{ margin: 0 }}>
-        {title}
-      </Typography.Title>
-      <Space>{profileSlot ?? <Typography.Text>Администратор</Typography.Text>}</Space>
+      <Space size={12} align="center">
+        {profileSlot}
+      </Space>
+      <Space>{actionsSlot}</Space>
     </Header>
   )
 }
