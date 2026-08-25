@@ -1,4 +1,5 @@
 import type { ISagaModule } from 'redux-dynamic-modules-saga'
+import { authorsActions } from './actions'
 import { authorsReducer } from './reducer'
 import { authorsSaga } from './sagas'
 
@@ -13,5 +14,6 @@ export function getAuthorsModule(): ISagaModule<AuthorsModuleState> {
       authors: authorsReducer,
     },
     sagas: [authorsSaga],
+    initialActions: [authorsActions.fetchRequest()],
   }
 }

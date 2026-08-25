@@ -6,6 +6,8 @@ import { AuthRoute } from '@/routes/AuthRoute'
 const HomePage = lazy(() => import('@/pages/Home'))
 const LoginPage = lazy(() => import('@/pages/Login'))
 const PostsPage = lazy(() => import('@/pages/Posts'))
+const AuthorsPage = lazy(() => import('@/pages/Authors'))
+const TagsPage = lazy(() => import('@/pages/Tags'))
 
 export function AppRoutes() {
   return (
@@ -22,6 +24,22 @@ export function AppRoutes() {
         <LazyPage>
           <AuthRoute private>
             <PostsPage />
+          </AuthRoute>
+        </LazyPage>
+      </Route>
+
+      <Route exact path="/authors">
+        <LazyPage>
+          <AuthRoute private>
+            <AuthorsPage />
+          </AuthRoute>
+        </LazyPage>
+      </Route>
+
+      <Route exact path="/tags">
+        <LazyPage>
+          <AuthRoute private>
+            <TagsPage />
           </AuthRoute>
         </LazyPage>
       </Route>

@@ -1,4 +1,4 @@
-import { FileTextOutlined } from '@ant-design/icons'
+import { FileTextOutlined, TagsOutlined, TeamOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { useHistory, useLocation } from 'react-router-dom'
@@ -11,12 +11,18 @@ const MENU_ITEMS: MenuProps['items'] = [
     icon: <FileTextOutlined />,
     label: 'Posts Management',
   },
-  // TODO: добавить Authors / Tags после вёрстки страниц
-  // { key: '/authors', icon: <TeamOutlined />, label: 'Authors' },
-  // { key: '/tags', icon: <TagsOutlined />, label: 'Tags' },
+  {
+    key: '/authors',
+    icon: <TeamOutlined />,
+    label: 'Authors',
+  },
+  {
+    key: '/tags',
+    icon: <TagsOutlined />,
+    label: 'Tags',
+  },
 ]
 
-/** Layout.Sider + Menu — навигация по разделам админки. */
 export function Sidebar() {
   const history = useHistory()
   const location = useLocation()

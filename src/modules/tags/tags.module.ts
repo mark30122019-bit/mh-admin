@@ -1,4 +1,5 @@
 import type { ISagaModule } from 'redux-dynamic-modules-saga'
+import { tagsActions } from './actions'
 import { tagsReducer } from './reducer'
 import { tagsSaga } from './sagas'
 
@@ -13,5 +14,6 @@ export function getTagsModule(): ISagaModule<TagsModuleState> {
       tags: tagsReducer,
     },
     sagas: [tagsSaga],
+    initialActions: [tagsActions.fetchRequest()],
   }
 }
