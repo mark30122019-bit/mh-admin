@@ -185,4 +185,4 @@ export const postsActions = {
   }),
 }
 
-export type { PostListItem } from '@/api/posts.types'
+export type { PostListItem } from '@/api'

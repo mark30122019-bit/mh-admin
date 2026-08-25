@@ -25,7 +25,13 @@ npm run preview  # просмотр build
 
 ```text
 src/
-├── api/                       # HTTP-клиент, типы, нормализация ответов
+├── api/                       # REST-слой по доменам
+│   ├── core/                  # client, cookies, errors, constants
+│   ├── auth/
+│   ├── posts/
+│   ├── authors/
+│   ├── tags/
+│   └── shared/                # pagination, page size
 ├── hooks/                     # Переиспользуемые хуки
 ├── routes/
 │   └── index.tsx              # Маршруты + React.lazy()

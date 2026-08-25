@@ -1,7 +1,7 @@
 import { toEntityId } from '@/utils/entityId'
-import { apiClient } from './client'
-import { appendFormValue } from './formData'
-import type { TagDetail, TagFormPayload, TagListItem } from './tags.types'
+import { apiClient } from '../core/client'
+import { appendFormValue } from '../core/formData'
+import type { TagDetail, TagFormPayload, TagListItem } from './types'
 
 function normalizeTagListItem(raw: TagListItem): TagListItem {
   return {

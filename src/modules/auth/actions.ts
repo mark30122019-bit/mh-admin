@@ -1,4 +1,4 @@
-import type { LoginCredentials, UserProfile } from '@/api/types'
+import type { LoginCredentials, UserProfile } from '@/api'
 
 export const AUTH_LOGIN_REQUEST = 'auth/LOGIN_REQUEST' as const
 export const AUTH_LOGIN_SUCCESS = 'auth/LOGIN_SUCCESS' as const

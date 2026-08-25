@@ -1,5 +1,5 @@
 import type { AnyAction } from 'redux'
-import type { UserProfile } from '@/api/types'
+import type { UserProfile } from '@/api'
 import type { AuthAction } from './actions'
 import {
   AUTH_INIT,

@@ -1,6 +1,6 @@
 import axios from 'axios'
-import type { AuthTokenResponse, LoginCredentials } from './types'
-import { API_BASE_URL, AUTH_ENDPOINTS } from './constants'
+import { API_BASE_URL, AUTH_ENDPOINTS } from '../core/constants'
+import type { AuthTokenResponse, LoginCredentials } from '../core/types'
 
 const authHttp = axios.create({
   baseURL: API_BASE_URL,

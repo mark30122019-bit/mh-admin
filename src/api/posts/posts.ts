@@ -1,15 +1,15 @@
 import { toEntityId } from '@/utils/entityId'
-import { apiClient } from './client'
-import { appendFormNumberArray, appendFormValue } from './formData'
-import { LIST_PAGE_SIZE } from './listPageSize'
-import { parsePaginationHeaders } from './pagination'
+import { apiClient } from '../core/client'
+import { appendFormNumberArray, appendFormValue } from '../core/formData'
+import { LIST_PAGE_SIZE } from '../shared/listPageSize'
+import { parsePaginationHeaders } from '../shared/pagination'
 import type {
   FetchPostsParams,
   PostDetail,
   PostFormPayload,
   PostListItem,
   PostsListResponse,
-} from './posts.types'
+} from './types'
 
 function normalizePicture(
   picture: PostListItem['previewPicture'],

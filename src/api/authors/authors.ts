@@ -1,11 +1,11 @@
 import { toEntityId } from '@/utils/entityId'
-import { apiClient } from './client'
-import { appendFormValue } from './formData'
+import { apiClient } from '../core/client'
+import { appendFormValue } from '../core/formData'
 import type {
   AuthorDetail,
   AuthorFormPayload,
   AuthorListItem,
-} from './authors.types'
+} from './types'
 
 function normalizeAuthorListItem(raw: AuthorListItem): AuthorListItem {
   return {

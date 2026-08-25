@@ -3,7 +3,7 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { refreshTokenRequest } from './auth'
+import { refreshTokenRequest } from '../auth/auth'
 import { API_BASE_URL, AUTH_ENDPOINTS } from './constants'
 import {
   clearAuthTokens,

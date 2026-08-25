@@ -1,6 +1,6 @@
-import type { ApiPagination } from './pagination.types'
+import type { ApiPagination } from '../shared/pagination.types'
 
-export type { ApiPagination } from './pagination.types'
+export type { ApiPagination } from '../shared/pagination.types'
 
 export interface ApiPicture {
   id: number

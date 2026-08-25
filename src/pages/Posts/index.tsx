@@ -9,7 +9,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { LIST_PAGE_SIZE, getPostsFirstPageMinHeight } from '@/api'
-import type { PostListItem } from '@/api/posts.types'
+import type { PostListItem } from '@/api'
 import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
 import { MainLayout } from '@/components/Layout'
 import {

@@ -3,19 +3,17 @@ import { push } from 'connected-react-router'
 import type { SagaIterator } from 'redux-saga'
 import { call, put, takeLatest, takeLeading } from 'redux-saga/effects'
 import {
+  clearAuthTokens,
   fetchProfileRequest,
+  getAccessToken,
   getBadRequestMessage,
+  getRefreshToken,
   getValidationErrors,
+  hasAuthTokens,
   loginRequest,
   refreshTokenRequest,
-} from '@/api'
-import {
-  clearAuthTokens,
-  getAccessToken,
-  getRefreshToken,
-  hasAuthTokens,
   setAuthTokens,
-} from '@/api/cookies'
+} from '@/api'
 import {
   AUTH_INIT,
   AUTH_LOGIN_REQUEST,
