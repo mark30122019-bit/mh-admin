@@ -14,11 +14,13 @@ import {
   Space,
   Table,
   Tag,
-  TableSkeleton,
-  getTableSkeletonPreset,
+  buildTableSkeletonRows,
+  isTableSkeletonRow,
   message,
   notification,
+  wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
+import type { TableSkeletonRow } from '@/components/ui'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
@@ -40,7 +42,8 @@ import {
 } from '@/utils/tableColumns'
 import { TagFormModal } from './TagFormModal'
 
-type TagTableRow = TagListItem | TablePlaceholderRow
+type TagDataRow = TagListItem | TablePlaceholderRow
+type TagTableRow = TagDataRow | TableSkeletonRow
 
 function formatDate(value: string, locale: string): string {
   const date = new Date(value)
@@ -95,6 +98,9 @@ function TagsPageContent() {
 
   const tableScroll = useTableScrollY(tableAreaRef, { observeKey: loading })
 
+  const tableBodyLoading = loading
+  const bodyScrollY = tableScroll.ready ? tableScroll.y : 120
+
   const confirmDelete = useCallback(
     (id: number) => {
       Modal.confirm({
@@ -112,7 +118,7 @@ function TagsPageContent() {
     [dispatch, t],
   )
 
-  const columns: ColumnsType<TagTableRow> = useMemo(
+  const columns: ColumnsType<TagDataRow> = useMemo(
     () => [
       {
         title: 'ID',
@@ -195,6 +201,19 @@ function TagsPageContent() {
     [confirmDelete, dateLocale, deletingId, t],
   )
 
+  const displayColumns = useMemo(
+    () => wrapColumnsWithSkeletonLoading(columns, 'tags', tableBodyLoading),
+    [columns, tableBodyLoading],
+  )
+
+  const tableDataSource = useMemo(
+    () =>
+      tableBodyLoading ? buildTableSkeletonRows(pageSize) : pageItems,
+    [tableBodyLoading, pageItems, pageSize],
+  )
+
+  const displayFillRowCount = tableBodyLoading ? pageSize : fillRowCount
+
   return (
     <>
       <AdminPageFrame fill>
@@ -219,30 +238,24 @@ function TagsPageContent() {
         </div>
 
         <AdminTableShell containerRef={tableAreaRef}>
-          {loading || !tableScroll.ready ? (
-            <TableSkeleton
-              columns={getTableSkeletonPreset('tags')}
-              rows={pageSize}
-              density="default"
-              bordered={false}
-              fill
-            />
-          ) : (
-            <Table<TagTableRow>
-              className="admin-table-fill-rows"
-              style={tableFillStyle(tableScroll.y, fillRowCount)}
-              columns={columns}
-              dataSource={pageItems}
-              pagination={false}
-              scroll={{ y: tableScroll.y }}
-              onRow={(record) => ({
-                className: isTablePlaceholderRow(record)
+          <Table<TagTableRow>
+            className="admin-table-fill-rows"
+            style={tableFillStyle(bodyScrollY, displayFillRowCount)}
+            columns={displayColumns}
+            dataSource={tableDataSource}
+            pagination={false}
+            scroll={{ y: bodyScrollY }}
+            onRow={(record) => ({
+              className: isTableSkeletonRow(record)
+                ? 'table-row-skeleton'
+                : isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'
                   : undefined,
-              })}
-              locale={{ emptyText: t('tags.noTags') }}
-            />
-          )}
+            })}
+            locale={{
+              emptyText: tableBodyLoading ? ' ' : t('tags.noTags'),
+            }}
+          />
         </AdminTableShell>
 
         <div className="admin-page-footer mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">

@@ -6,13 +6,22 @@ import type { CSSProperties } from 'react'
  */
 export const POSTS_TABLE_COLS = {
   id: 56,
-  preview: 72,
+  preview: 88,
   title: 180,
   author: 140,
   tags: 168,
   created: 112,
   actions: 88,
 } as const
+
+/** Превью в строке постов: широкий прямоугольник ~10:7, высота почти на весь ряд (48px). */
+export const POSTS_TABLE_PREVIEW = {
+  width: 60,
+  height: 42,
+} as const
+
+/** Высота полоски скелетона текста в tbody (≈ line-height ячейки). */
+export const TABLE_SKELETON_TEXT_HEIGHT_PX = 20
 
 export const AUTHORS_TABLE_COLS = {
   id: 56,

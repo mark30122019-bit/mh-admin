@@ -22,7 +22,7 @@ import {
   type TagsDetailRequestAction,
   type TagsSaveRequestAction,
 } from './actions'
-import { selectTagsItems } from './selectors'
+import { selectTagDetail, selectTagsItems } from './selectors'
 
 function* resolveTagCode(id?: number): SagaIterator {
   if (!id) {

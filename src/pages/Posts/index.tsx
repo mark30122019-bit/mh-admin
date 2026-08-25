@@ -18,10 +18,11 @@ import {
   Space,
   Table,
   Tag,
-  TableSkeleton,
-  getTableSkeletonPreset,
+  buildTableSkeletonRows,
+  isTableSkeletonRow,
   message,
   notification,
+  wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -45,13 +46,16 @@ import {
   isTablePlaceholderRow,
   type TablePlaceholderRow,
 } from '@/utils/padTablePage'
+import type { TableSkeletonRow } from '@/components/ui'
 import {
   POSTS_TABLE_COLS,
+  POSTS_TABLE_PREVIEW,
   tableFillStyle,
 } from '@/utils/tableColumns'
 import { PostFormModal } from './PostFormModal'
 
-type PostTableRow = PostListItem | TablePlaceholderRow
+type PostDataRow = PostListItem | TablePlaceholderRow
+type PostTableRow = PostDataRow | TableSkeletonRow
 
 function formatCreatedAt(value: string, locale: string): string {
   const date = new Date(value)
@@ -124,6 +128,9 @@ function PostsPageContent() {
     observeKey: loading,
   })
 
+  const tableBodyLoading = loading
+  const bodyScrollY = tableScroll.ready ? tableScroll.y : 120
+
   const openCreateModal = () => {
     setEditingId(null)
     setModalOpen(true)
@@ -152,7 +159,7 @@ function PostsPageContent() {
     [dispatch, pagination.currentPage, t],
   )
 
-  const columns: ColumnsType<PostTableRow> = useMemo(
+  const columns: ColumnsType<PostDataRow> = useMemo(
     () => [
       {
         title: 'ID',
@@ -179,8 +186,8 @@ function PostsPageContent() {
             <Image
               src={url}
               alt={record.title}
-              width={40}
-              height={28}
+              width={POSTS_TABLE_PREVIEW.width}
+              height={POSTS_TABLE_PREVIEW.height}
               style={{
                 objectFit: 'cover',
                 borderRadius: 4,
@@ -298,6 +305,19 @@ function PostsPageContent() {
     [authorCatalog, confirmDelete, dateLocale, deletingId, lang, t, tagCatalog],
   )
 
+  const displayColumns = useMemo(
+    () => wrapColumnsWithSkeletonLoading(columns, 'posts', tableBodyLoading),
+    [columns, tableBodyLoading],
+  )
+
+  const tableDataSource = useMemo(
+    () =>
+      tableBodyLoading ? buildTableSkeletonRows(pageSize) : tableRows,
+    [tableBodyLoading, pageSize, tableRows],
+  )
+
+  const displayFillRowCount = tableBodyLoading ? pageSize : fillRowCount
+
   return (
     <>
       <AdminPageFrame fill>
@@ -317,31 +337,25 @@ function PostsPageContent() {
         </div>
 
         <AdminTableShell containerRef={tableAreaRef}>
-          {loading || !tableScroll.ready ? (
-            <TableSkeleton
-              columns={getTableSkeletonPreset('posts')}
-              rows={pageSize}
-              density="small"
-              bordered={false}
-              fill
-            />
-          ) : (
-            <Table<PostTableRow>
-              className="posts-table admin-table-fill-rows"
-              style={tableFillStyle(tableScroll.y, fillRowCount)}
-              columns={columns}
-              dataSource={tableRows}
-              pagination={false}
-              size="small"
-              scroll={{ y: tableScroll.y }}
-              onRow={(record) => ({
-                className: isTablePlaceholderRow(record)
+          <Table<PostTableRow>
+            className="posts-table admin-table-fill-rows"
+            style={tableFillStyle(bodyScrollY, displayFillRowCount)}
+            columns={displayColumns}
+            dataSource={tableDataSource}
+            pagination={false}
+            size="small"
+            scroll={{ y: bodyScrollY }}
+            onRow={(record) => ({
+              className: isTableSkeletonRow(record)
+                ? 'table-row-skeleton'
+                : isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'
                   : undefined,
-              })}
-              locale={{ emptyText: t('posts.noPosts') }}
-            />
-          )}
+            })}
+            locale={{
+              emptyText: tableBodyLoading ? ' ' : t('posts.noPosts'),
+            }}
+          />
         </AdminTableShell>
 
         <div className="admin-page-footer mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">

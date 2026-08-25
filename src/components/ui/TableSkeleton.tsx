@@ -1,5 +1,14 @@
-import { Skeleton } from 'antd'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Skeleton, Space } from 'antd'
+import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { ReactNode } from 'react'
 import { TABLE_ROW_HEIGHT_PX, TAGS_TABLE_ROW_HEIGHT_PX } from '@/api'
+import {
+  POSTS_TABLE_COLS,
+  POSTS_TABLE_PREVIEW,
+  TABLE_SKELETON_TEXT_HEIGHT_PX,
+} from '@/utils/tableColumns'
+import { Button } from './Button'
 
 export type TableSkeletonColumn = {
   key: string
@@ -26,7 +35,7 @@ type TableSkeletonProps = {
 const PRESETS = {
   posts: [
     { key: 'id', width: 56, variant: 'id' },
-    { key: 'preview', width: 72, variant: 'thumb' },
+    { key: 'preview', width: POSTS_TABLE_COLS.preview, variant: 'thumb' },
     { key: 'title', width: 180, variant: 'text' },
     { key: 'author', width: 140, variant: 'text' },
     { key: 'tags', width: 168, variant: 'tags' },
@@ -53,6 +62,105 @@ const PRESETS = {
 } as const satisfies Record<string, TableSkeletonColumn[]>
 
 export type TableSkeletonPreset = keyof typeof PRESETS
+
+export type TableSkeletonRow = {
+  id: string
+  __skeleton: true
+}
+
+export function isTableSkeletonRow(record: object): record is TableSkeletonRow {
+  return (
+    '__skeleton' in record &&
+    (record as TableSkeletonRow).__skeleton === true
+  )
+}
+
+/** Строки-заглушки для tbody, пока грузятся данные. */
+export function buildTableSkeletonRows(count: number): TableSkeletonRow[] {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `__skeleton-${index}`,
+    __skeleton: true as const,
+  }))
+}
+
+function resolveColumnSkeletonKey(column: ColumnType<unknown>): string {
+  if (column.key === 'actions' || column.key === 'avatar') {
+    return String(column.key)
+  }
+
+  const dataIndex = column.dataIndex
+  if (dataIndex === 'previewPicture') return 'preview'
+  if (dataIndex === 'authorName') return 'author'
+  if (dataIndex === 'tagNames') return 'tags'
+  if (dataIndex === 'createdAt') return 'created'
+  if (dataIndex === 'sort') return 'priority'
+  if (typeof dataIndex === 'string') return dataIndex
+  if (column.key != null) return String(column.key)
+  return 'text'
+}
+
+/** Edit/Delete в колонке действий — видимы, но недоступны во время загрузки tbody. */
+export function DisabledTableRowActions() {
+  return (
+    <Space size="middle">
+      <Button type="text" disabled icon={<EditOutlined />} />
+      <Button type="text" disabled icon={<DeleteOutlined />} />
+    </Space>
+  )
+}
+
+/**
+ * Оборачивает колонки: при loading рендерит CellSkeleton только в tbody,
+ * заголовки столбцов остаются реальными.
+ */
+export function wrapColumnsWithSkeletonLoading<T extends object>(
+  columns: ColumnsType<T>,
+  preset: TableSkeletonPreset,
+  loading: boolean,
+): ColumnsType<T | TableSkeletonRow> {
+  if (!loading) {
+    return columns as ColumnsType<T | TableSkeletonRow>
+  }
+
+  const skeletonByKey = new Map(
+    getTableSkeletonPreset(preset).map((col) => [col.key, col]),
+  )
+
+  return columns.map((column) => {
+    const col = column as ColumnType<T>
+    const skeletonKey = resolveColumnSkeletonKey(col as ColumnType<unknown>)
+    const skeletonCol = skeletonByKey.get(skeletonKey)
+    const originalRender = col.render
+
+    return {
+      ...col,
+      render: (value, record, index) => {
+        if (isTableSkeletonRow(record)) {
+          if (skeletonKey === 'actions') {
+            return <DisabledTableRowActions />
+          }
+          if (!skeletonCol) return null
+          return (
+            <span className="admin-table-skeleton-cell">
+              <CellSkeleton
+                variant={skeletonCol.variant}
+                width={skeletonCol.width}
+                grow={skeletonCol.grow}
+                rowIndex={index}
+              />
+            </span>
+          )
+        }
+
+        if (originalRender) {
+          return originalRender(value, record as T, index) as ReactNode
+        }
+
+        return value as ReactNode
+      },
+    }
+  }) as ColumnsType<T | TableSkeletonRow>
+}
 
 const DENSITY = {
   small: {
@@ -104,7 +212,12 @@ function CellSkeleton({
       <Skeleton.Button
         active
         size="small"
-        style={{ width: 48, height: 34, minWidth: 48, borderRadius: 4 }}
+        style={{
+          width: POSTS_TABLE_PREVIEW.width,
+          height: POSTS_TABLE_PREVIEW.height,
+          minWidth: POSTS_TABLE_PREVIEW.width,
+          borderRadius: 4,
+        }}
       />
     )
   }
@@ -122,12 +235,12 @@ function CellSkeleton({
         <Skeleton.Button
           active
           size="small"
-          style={{ width: 52, height: 22, minWidth: 52, borderRadius: 4 }}
+          style={{ width: 52, height: 24, minWidth: 52, borderRadius: 4 }}
         />
         <Skeleton.Button
           active
           size="small"
-          style={{ width: 44, height: 22, minWidth: 44, borderRadius: 4 }}
+          style={{ width: 44, height: 24, minWidth: 44, borderRadius: 4 }}
         />
       </div>
     )
@@ -141,7 +254,7 @@ function CellSkeleton({
         width: textBarWidth(variant, width, grow, rowIndex),
         maxWidth: grow ? '92%' : width - 24,
         minWidth: 28,
-        height: 14,
+        height: TABLE_SKELETON_TEXT_HEIGHT_PX,
       }}
     />
   )

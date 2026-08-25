@@ -3,17 +3,16 @@ import { Route, Switch } from 'react-router-dom'
 import { LazyPage } from '@/components/LazyPage'
 import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
 import { MainLayout } from '@/components/Layout'
-import { PageContentSkeleton } from '@/components/ui/TableSkeleton'
 import { getAuthorsModule } from '@/modules/authors/authors.module'
 import { getPostsModule } from '@/modules/posts/posts.module'
 import { getTagsModule } from '@/modules/tags/tags.module'
+import AuthorsPage from '@/pages/Authors'
+import PostsPage from '@/pages/Posts'
+import TagsPage from '@/pages/Tags'
 import { AuthRoute } from '@/routes/AuthRoute'
 
 const HomePage = lazy(() => import('@/pages/Home'))
 const LoginPage = lazy(() => import('@/pages/Login'))
-const PostsPage = lazy(() => import('@/pages/Posts'))
-const AuthorsPage = lazy(() => import('@/pages/Authors'))
-const TagsPage = lazy(() => import('@/pages/Tags'))
 
 /**
  * Общий shell админки: layout и redux-модули не размонтируются
@@ -27,7 +26,7 @@ function AdminShell({ children }: { children: ReactNode }) {
         strictMode
       >
         <MainLayout>
-          <LazyPage fallback={<PageContentSkeleton />}>{children}</LazyPage>
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </MainLayout>
       </DynamicModuleLoader>
     </AuthRoute>

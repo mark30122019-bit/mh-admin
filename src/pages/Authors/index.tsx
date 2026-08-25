@@ -13,11 +13,13 @@ import {
   Pagination,
   Space,
   Table,
-  TableSkeleton,
-  getTableSkeletonPreset,
+  buildTableSkeletonRows,
+  isTableSkeletonRow,
   message,
   notification,
+  wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
+import type { TableSkeletonRow } from '@/components/ui'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
@@ -40,7 +42,8 @@ import {
 } from '@/utils/tableColumns'
 import { AuthorFormModal } from './AuthorFormModal'
 
-type AuthorTableRow = AuthorListItem | TablePlaceholderRow
+type AuthorDataRow = AuthorListItem | TablePlaceholderRow
+type AuthorTableRow = AuthorDataRow | TableSkeletonRow
 
 function formatDate(value: string, locale: string): string {
   const date = new Date(value)
@@ -142,6 +145,9 @@ function AuthorsPageContent() {
 
   const tableScroll = useTableScrollY(tableAreaRef, { observeKey: loading })
 
+  const tableBodyLoading = loading
+  const bodyScrollY = tableScroll.ready ? tableScroll.y : 120
+
   const confirmDelete = useCallback(
     (id: number) => {
       Modal.confirm({
@@ -159,7 +165,7 @@ function AuthorsPageContent() {
     [dispatch, t],
   )
 
-  const columns: ColumnsType<AuthorTableRow> = useMemo(
+  const columns: ColumnsType<AuthorDataRow> = useMemo(
     () => [
       {
         title: 'ID',
@@ -249,6 +255,19 @@ function AuthorsPageContent() {
     [confirmDelete, dateLocale, deletingId, t],
   )
 
+  const displayColumns = useMemo(
+    () => wrapColumnsWithSkeletonLoading(columns, 'authors', tableBodyLoading),
+    [columns, tableBodyLoading],
+  )
+
+  const tableDataSource = useMemo(
+    () =>
+      tableBodyLoading ? buildTableSkeletonRows(pageSize) : pageItems,
+    [tableBodyLoading, pageItems, pageSize],
+  )
+
+  const displayFillRowCount = tableBodyLoading ? pageSize : fillRowCount
+
   return (
     <>
       <AdminPageFrame fill>
@@ -273,30 +292,24 @@ function AuthorsPageContent() {
         </div>
 
         <AdminTableShell containerRef={tableAreaRef}>
-          {loading || !tableScroll.ready ? (
-            <TableSkeleton
-              columns={getTableSkeletonPreset('authors')}
-              rows={pageSize}
-              density="default"
-              bordered={false}
-              fill
-            />
-          ) : (
-            <Table<AuthorTableRow>
-              className="admin-table-fill-rows"
-              style={tableFillStyle(tableScroll.y, fillRowCount)}
-              columns={columns}
-              dataSource={pageItems}
-              pagination={false}
-              scroll={{ y: tableScroll.y }}
-              onRow={(record) => ({
-                className: isTablePlaceholderRow(record)
+          <Table<AuthorTableRow>
+            className="admin-table-fill-rows"
+            style={tableFillStyle(bodyScrollY, displayFillRowCount)}
+            columns={displayColumns}
+            dataSource={tableDataSource}
+            pagination={false}
+            scroll={{ y: bodyScrollY }}
+            onRow={(record) => ({
+              className: isTableSkeletonRow(record)
+                ? 'table-row-skeleton'
+                : isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'
                   : undefined,
-              })}
-              locale={{ emptyText: t('authors.noAuthors') }}
-            />
-          )}
+            })}
+            locale={{
+              emptyText: tableBodyLoading ? ' ' : t('authors.noAuthors'),
+            }}
+          />
         </AdminTableShell>
 
         <div className="admin-page-footer mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">

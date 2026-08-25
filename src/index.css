@@ -121,6 +121,22 @@ body,
   padding-bottom: 0 !important;
 }
 
+.admin-table-fill-rows .ant-table-tbody > tr.table-row-skeleton > td {
+  overflow: visible !important;
+  text-overflow: clip;
+}
+
+.admin-data-table .ant-table-tbody > tr.table-row-skeleton > td {
+  overflow: visible !important;
+}
+
+.admin-data-table .ant-table-tbody > tr.table-row-skeleton > td .admin-table-skeleton-cell {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 20px;
+}
+
 
 /*
  * Защита от бесконечного текста:

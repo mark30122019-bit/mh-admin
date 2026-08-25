@@ -33,8 +33,20 @@ export type { SpaceProps } from './Space'
 export { Spin } from './Spin'
 export type { SpinProps } from './Spin'
 
-export { TableSkeleton, PageContentSkeleton, getTableSkeletonPreset } from './TableSkeleton'
-export type { TableSkeletonColumn, TableSkeletonPreset } from './TableSkeleton'
+export {
+  TableSkeleton,
+  getTableSkeletonPreset,
+  PageContentSkeleton,
+  buildTableSkeletonRows,
+  isTableSkeletonRow,
+  wrapColumnsWithSkeletonLoading,
+  DisabledTableRowActions,
+} from './TableSkeleton'
+export type {
+  TableSkeletonColumn,
+  TableSkeletonPreset,
+  TableSkeletonRow,
+} from './TableSkeleton'
 
 export { ImageUploadCard } from './ImageUploadCard'
 export { ImageCropModal } from './ImageCropModal'

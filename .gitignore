@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Локальные заметки / QA (не в репозиторий)
+QA_UI_CHECKLIST.md
