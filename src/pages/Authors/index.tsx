@@ -253,6 +253,7 @@ function AuthorsPageContent() {
               columns={getTableSkeletonPreset('authors')}
               rows={pageSize}
               rowHeight={AUTHORS_TABLE_ROW_HEIGHT_PX}
+              density="default"
               bordered={false}
             />
           ) : (

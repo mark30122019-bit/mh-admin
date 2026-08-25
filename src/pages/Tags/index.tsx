@@ -204,6 +204,7 @@ function TagsPageContent() {
               columns={getTableSkeletonPreset('tags')}
               rows={pageSize}
               rowHeight={TAGS_TABLE_ROW_HEIGHT_PX}
+              density="default"
               bordered={false}
             />
           ) : (
