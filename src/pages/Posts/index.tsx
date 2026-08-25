@@ -195,7 +195,8 @@ function PostsPageContent() {
       {
         title: t('posts.preview'),
         dataIndex: 'previewPicture',
-        width: 72,
+        width: 92,
+        onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const url = record.previewPicture?.url
@@ -324,21 +325,27 @@ function PostsPageContent() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3">
             <Input.Search
               placeholder={t('posts.searchPlaceholder')}
               allowClear
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              className="w-[260px] shrink-0"
               style={{ width: 260 }}
             />
             <Select
               value={authorFilter}
               options={authorOptions}
               onChange={setAuthorFilter}
+              className="w-[180px] shrink-0"
               style={{ width: 180 }}
             />
-            <Button icon={<SortAscendingOutlined />} disabled />
+            <Button
+              icon={<SortAscendingOutlined />}
+              disabled
+              className="shrink-0"
+            />
           </div>
         </div>
 
@@ -348,6 +355,7 @@ function PostsPageContent() {
               columns={getTableSkeletonPreset('posts')}
               rows={pageSize}
               rowHeight={TABLE_ROW_HEIGHT_PX}
+              density="small"
               bordered={false}
             />
           ) : (
