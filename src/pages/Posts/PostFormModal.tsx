@@ -1,10 +1,16 @@
-import { UploadOutlined } from '@ant-design/icons'
-import { Image, Upload } from 'antd'
-import type { UploadFile } from 'antd/es/upload/interface'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { PostFormInput } from '@/api'
-import { Button, Form, Input, Modal, Select, message } from '@/components/ui'
+import {
+  Button,
+  Form,
+  ImageCropModal,
+  ImageUploadCard,
+  Input,
+  Modal,
+  Select,
+  message,
+} from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
@@ -40,7 +46,10 @@ type PostFormModalProps = {
   onClose: () => void
 }
 
-const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif'
+type CropDraft = {
+  src: string
+  fileName: string
+}
 
 export function PostFormModal({
   open,
@@ -52,12 +61,12 @@ export function PostFormModal({
   const { t, lang } = useTranslation()
   const [form] = Form.useForm<PostFormValues>()
   const [previewFile, setPreviewFile] = useState<File | undefined>()
-  const [fileList, setFileList] = useState<UploadFile[]>([])
   const [existingPreviewUrl, setExistingPreviewUrl] = useState<string | null>(
     null,
   )
   const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [cropDraft, setCropDraft] = useState<CropDraft | null>(null)
   const wasSavingRef = useRef(false)
 
   const detail = useSelector((state: PostsModuleState) => selectPostDetail(state))
@@ -86,6 +95,7 @@ export function PostFormModal({
 
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
+  const formBusy = detailLoading || referencesLoading
 
   const authorSelectOptions = useMemo(() => {
     const options = authorOptions.map((author) => ({
@@ -154,9 +164,12 @@ export function PostFormModal({
     dispatch(postsActions.detailClear())
     form.resetFields()
     setPreviewFile(undefined)
-    setFileList([])
     setExistingPreviewUrl(null)
     setPreviewError(null)
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src)
+      return null
+    })
   }, [dispatch, editingId, form, open])
 
   useEffect(() => {
@@ -171,7 +184,6 @@ export function PostFormModal({
       text: detail.text,
     })
     setPreviewFile(undefined)
-    setFileList([])
     setExistingPreviewUrl(detail.previewPicture?.url ?? null)
     setPreviewError(
       detail.previewPicture?.url ? null : t('posts.previewRequired'),
@@ -188,9 +200,31 @@ export function PostFormModal({
 
   const clearPreview = () => {
     setPreviewFile(undefined)
-    setFileList([])
     setExistingPreviewUrl(null)
     setPreviewError(t('posts.previewRequired'))
+  }
+
+  const closeCropDraft = () => {
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src)
+      return null
+    })
+  }
+
+  const handleSelectPreview = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setPreviewError(t('posts.selectImage'))
+      return
+    }
+    const src = URL.createObjectURL(file)
+    setCropDraft({ src, fileName: file.name })
+  }
+
+  const handleCropComplete = (file: File) => {
+    setPreviewFile(file)
+    setExistingPreviewUrl(null)
+    setPreviewError(null)
+    closeCropDraft()
   }
 
   const handleSubmit = (values: PostFormValues) => {
@@ -211,155 +245,131 @@ export function PostFormModal({
   }
 
   return (
-    <Modal
-      title={editingId ? t('posts.editPost') : t('posts.newPost')}
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={720}
-      destroyOnHidden
-    >
-      <Form<PostFormValues>
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        disabled={detailLoading || referencesLoading}
+    <>
+      <Modal
+        title={editingId ? t('posts.editPost') : t('posts.newPost')}
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        width={780}
+        destroyOnHidden
       >
-        <Form.Item
-          label={t('posts.postTitle')}
-          name="title"
-          rules={[{ required: true, message: t('posts.enterTitle') }]}
+        <Form<PostFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          disabled={formBusy}
         >
-          <Input />
-        </Form.Item>
+          <div className="mb-1 flex items-start gap-6">
+            <div className="min-w-0 flex-1">
+              <Form.Item
+                label={t('posts.postTitle')}
+                name="title"
+                rules={[{ required: true, message: t('posts.enterTitle') }]}
+              >
+                <Input />
+              </Form.Item>
 
-        <Form.Item
-          label={t('posts.author')}
-          name="authorId"
-          rules={[{ required: true, message: t('posts.selectAuthor') }]}
-        >
-          <Select
-            loading={referencesLoading}
-            options={authorSelectOptions}
-            placeholder={t('posts.selectAuthor')}
-            showSearch
-            optionFilterProp="label"
-          />
-        </Form.Item>
-
-        <Form.Item label={t('posts.tags')} name="tagIds">
-          <Select
-            mode="multiple"
-            loading={referencesLoading}
-            options={tagSelectOptions}
-            placeholder={t('posts.selectTags')}
-            // Удалённые теги без option отобразятся как ID —
-            // админ может снять их крестиком перед сохранением.
-          />
-        </Form.Item>
-
-        <Form.Item
-          label={t('posts.text')}
-          name="text"
-          rules={[
-            {
-              validator: (_, value: string) =>
-                isRichTextEmpty(value)
-                  ? Promise.reject(new Error(t('posts.enterText')))
-                  : Promise.resolve(),
-            },
-          ]}
-          trigger="onChange"
-          validateTrigger="onChange"
-        >
-          <RichTextEditor />
-        </Form.Item>
-
-        <Form.Item
-          label={t('posts.previewPicture')}
-          required
-          validateStatus={previewError ? 'error' : undefined}
-          help={previewError ?? undefined}
-        >
-          <Upload
-            accept={IMAGE_ACCEPT}
-            beforeUpload={(file) => {
-              if (!file.type.startsWith('image/')) {
-                setPreviewError(t('posts.selectImage'))
-                return Upload.LIST_IGNORE
-              }
-
-              setPreviewFile(file)
-              setExistingPreviewUrl(null)
-              setPreviewError(null)
-              setFileList([
-                {
-                  uid: `-preview-${Date.now()}`,
-                  name: file.name,
-                  status: 'done',
-                  originFileObj: file,
-                },
-              ])
-              return false
-            }}
-            onRemove={() => {
-              clearPreview()
-              return true
-            }}
-            fileList={fileList}
-            maxCount={1}
-            listType="picture"
-            showUploadList={{ showPreviewIcon: false }}
-          >
-            <Button icon={<UploadOutlined />}>{t('posts.selectFile')}</Button>
-          </Upload>
-
-          {previewUrl ? (
-            <div style={{ marginTop: 12 }}>
-              <Image
-                src={previewUrl}
-                alt="Post preview"
-                width={240}
-                style={{
-                  borderRadius: 8,
-                  objectFit: 'cover',
-                  maxHeight: 160,
-                }}
-              />
-              <div style={{ marginTop: 8 }}>
-                <Button
-                  type="link"
-                  danger
-                  onClick={clearPreview}
-                  style={{ padding: 0 }}
-                >
-                  {t('posts.removePreview')}
-                </Button>
-              </div>
+              <Form.Item
+                label={t('posts.author')}
+                name="authorId"
+                rules={[{ required: true, message: t('posts.selectAuthor') }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Select
+                  loading={referencesLoading}
+                  options={authorSelectOptions}
+                  placeholder={t('posts.selectAuthor')}
+                  showSearch
+                  optionFilterProp="label"
+                />
+              </Form.Item>
             </div>
-          ) : (
-            <div
-              style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)', fontSize: 13 }}
+
+            <Form.Item
+              label={t('posts.previewPicture')}
+              required
+              validateStatus={previewError ? 'error' : undefined}
+              help={previewError ?? undefined}
+              className="mb-0 shrink-0"
             >
-              {t('posts.previewHint')}
-            </div>
-          )}
-        </Form.Item>
+              <div className="flex flex-col items-stretch gap-2">
+                <ImageUploadCard
+                  variant="banner"
+                  imageUrl={previewUrl}
+                  replaceLabel={t('posts.replacePreview')}
+                  emptyLabel={t('posts.previewHint')}
+                  disabled={formBusy}
+                  hasError={Boolean(previewError)}
+                  onSelect={handleSelectPreview}
+                />
+                {previewUrl ? (
+                  <Button
+                    type="link"
+                    danger
+                    size="small"
+                    onClick={clearPreview}
+                    style={{ padding: 0, height: 'auto', alignSelf: 'flex-start' }}
+                  >
+                    {t('posts.removePreview')}
+                  </Button>
+                ) : null}
+              </div>
+            </Form.Item>
+          </div>
 
-        <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-          <Button onClick={onClose} style={{ marginRight: 8 }}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={saving}
-            disabled={!hasPreview || detailLoading || referencesLoading}
+          <Form.Item label={t('posts.tags')} name="tagIds" className="mt-4">
+            <Select
+              mode="multiple"
+              loading={referencesLoading}
+              options={tagSelectOptions}
+              placeholder={t('posts.selectTags')}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={t('posts.text')}
+            name="text"
+            required
+            rules={[
+              {
+                validator: (_, value: string) =>
+                  isRichTextEmpty(value)
+                    ? Promise.reject(new Error(t('posts.enterText')))
+                    : Promise.resolve(),
+              },
+            ]}
+            trigger="onChange"
+            validateTrigger="onChange"
           >
-            {t('common.save')}
-          </Button>
-        </Form.Item>
-      </Form>
-    </Modal>
+            <RichTextEditor />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Button onClick={onClose} style={{ marginRight: 8 }}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={saving}
+              disabled={!hasPreview || formBusy}
+            >
+              {t('common.save')}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <ImageCropModal
+        open={Boolean(cropDraft)}
+        imageSrc={cropDraft?.src ?? null}
+        fileName={cropDraft?.fileName ?? 'preview.jpg'}
+        aspect={16 / 9}
+        cropShape="rect"
+        onCancel={closeCropDraft}
+        onComplete={handleCropComplete}
+      />
+    </>
   )
 }

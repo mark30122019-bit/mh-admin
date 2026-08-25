@@ -10,6 +10,9 @@ export type TranslationDict = {
     search: string
     all: string
     optional: string
+    cropImage: string
+    zoom: string
+    apply: string
   }
   nav: {
     posts: string
@@ -55,6 +58,7 @@ export type TranslationDict = {
     remove: string
     removePreview: string
     previewHint: string
+    replacePreview: string
   }
   authors: {
     title: string
@@ -67,6 +71,7 @@ export type TranslationDict = {
     description: string
     avatar: string
     removeAvatar: string
+    replaceAvatar: string
     noAuthors: string
     count: string
     deleteConfirmTitle: string
@@ -114,6 +119,9 @@ export const ru: TranslationDict = {
     search: 'Поиск',
     all: 'Все',
     optional: 'Необязательно',
+    cropImage: 'Обрезка изображения',
+    zoom: 'Масштаб',
+    apply: 'Применить',
   },
   nav: {
     posts: 'Управление постами',
@@ -158,7 +166,8 @@ export const ru: TranslationDict = {
     selectImage: 'Выберите изображение',
     remove: 'Удалить',
     removePreview: 'Удалить превью',
-    previewHint: 'Обязательное поле. JPG, PNG, WEBP или GIF.',
+    previewHint: 'JPG, PNG, WEBP или GIF',
+    replacePreview: 'Заменить',
   },
   authors: {
     title: 'Авторы',
@@ -171,6 +180,7 @@ export const ru: TranslationDict = {
     description: 'Описание',
     avatar: 'Аватар',
     removeAvatar: 'Удалить аватар',
+    replaceAvatar: 'Заменить',
     noAuthors: 'Нет авторов',
     count: '{{count}} авторов',
     deleteConfirmTitle: 'Удалить этого автора?',
@@ -218,6 +228,9 @@ export const en: TranslationDict = {
     search: 'Search',
     all: 'All',
     optional: 'Optional',
+    cropImage: 'Crop image',
+    zoom: 'Zoom',
+    apply: 'Apply',
   },
   nav: {
     posts: 'Posts Management',
@@ -262,7 +275,8 @@ export const en: TranslationDict = {
     selectImage: 'Select an image',
     remove: 'Remove',
     removePreview: 'Remove preview',
-    previewHint: 'Required. JPG, PNG, WEBP or GIF.',
+    previewHint: 'JPG, PNG, WEBP or GIF',
+    replacePreview: 'Replace',
   },
   authors: {
     title: 'Authors',
@@ -275,6 +289,7 @@ export const en: TranslationDict = {
     description: 'Description',
     avatar: 'Avatar',
     removeAvatar: 'Remove avatar',
+    replaceAvatar: 'Replace',
     noAuthors: 'No authors',
     count: '{{count}} authors',
     deleteConfirmTitle: 'Delete this author?',

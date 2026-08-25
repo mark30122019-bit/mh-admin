@@ -245,3 +245,13 @@ body,
   max-height: min(70vh, 560px);
   object-fit: contain;
 }
+
+/* Карточка загрузки: trigger Upload на всю площадь аватара/баннера */
+.image-upload-card.ant-upload.ant-upload-select {
+  display: block;
+  width: fit-content;
+}
+
+.image-upload-card .ant-upload {
+  display: block;
+}

@@ -1,10 +1,15 @@
-import { UploadOutlined } from '@ant-design/icons'
-import { Image, Upload } from 'antd'
-import type { UploadFile } from 'antd/es/upload/interface'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorFormPayload } from '@/api'
-import { Button, Form, Input, Modal, message } from '@/components/ui'
+import {
+  Button,
+  Form,
+  ImageCropModal,
+  ImageUploadCard,
+  Input,
+  Modal,
+  message,
+} from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
@@ -16,6 +21,7 @@ import {
   selectAuthorsSaveFieldErrors,
   selectAuthorsSaving,
 } from '@/modules/authors/selectors'
+import { getAuthorInitials } from '@/utils/authorInitials'
 
 type AuthorFormValues = {
   name: string
@@ -31,6 +37,11 @@ type AuthorFormModalProps = {
   onClose: () => void
 }
 
+type CropDraft = {
+  src: string
+  fileName: string
+}
+
 export function AuthorFormModal({
   open,
   editingId,
@@ -40,9 +51,10 @@ export function AuthorFormModal({
   const { t } = useTranslation()
   const [form] = Form.useForm<AuthorFormValues>()
   const [avatarFile, setAvatarFile] = useState<File | undefined>()
-  const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null)
   const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null)
   const [removeAvatar, setRemoveAvatar] = useState(false)
+  const [cropDraft, setCropDraft] = useState<CropDraft | null>(null)
   const wasSavingRef = useRef(false)
 
   const detail = useSelector((state: AuthorsModuleState) =>
@@ -63,6 +75,34 @@ export function AuthorFormModal({
 
   useFormApiErrors(form, saveFieldErrors, saveError, 'Author')
 
+  const avatarUrl = localAvatarUrl ?? (removeAvatar ? null : existingAvatarUrl)
+  const watchedName = Form.useWatch('name', form)
+  const watchedLastName = Form.useWatch('lastName', form)
+  const avatarInitials = useMemo(
+    () => getAuthorInitials(watchedName, watchedLastName),
+    [watchedName, watchedLastName],
+  )
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setLocalAvatarUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev)
+        return null
+      })
+      return
+    }
+
+    const url = URL.createObjectURL(avatarFile)
+    setLocalAvatarUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return url
+    })
+
+    return () => {
+      URL.revokeObjectURL(url)
+    }
+  }, [avatarFile])
+
   useEffect(() => {
     if (!open) return
 
@@ -74,9 +114,12 @@ export function AuthorFormModal({
     dispatch(authorsActions.detailClear())
     form.resetFields()
     setAvatarFile(undefined)
-    setFileList([])
     setExistingAvatarUrl(null)
     setRemoveAvatar(false)
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src)
+      return null
+    })
   }, [dispatch, editingId, form, open])
 
   useEffect(() => {
@@ -90,7 +133,6 @@ export function AuthorFormModal({
       description: detail.description,
     })
     setAvatarFile(undefined)
-    setFileList([])
     setExistingAvatarUrl(detail.avatar?.url ?? null)
     setRemoveAvatar(false)
   }, [detail, editingId, form, open])
@@ -105,11 +147,28 @@ export function AuthorFormModal({
 
   const clearAvatar = () => {
     setAvatarFile(undefined)
-    setFileList([])
     if (existingAvatarUrl) {
       setRemoveAvatar(true)
-      setExistingAvatarUrl(null)
     }
+    setExistingAvatarUrl(null)
+  }
+
+  const closeCropDraft = () => {
+    setCropDraft((prev) => {
+      if (prev) URL.revokeObjectURL(prev.src)
+      return null
+    })
+  }
+
+  const handleSelectAvatar = (file: File) => {
+    const src = URL.createObjectURL(file)
+    setCropDraft({ src, fileName: file.name })
+  }
+
+  const handleCropComplete = (file: File) => {
+    setAvatarFile(file)
+    setRemoveAvatar(false)
+    closeCropDraft()
   }
 
   const handleSubmit = (values: AuthorFormValues) => {
@@ -126,114 +185,102 @@ export function AuthorFormModal({
     dispatch(authorsActions.saveRequest(payload, editingId ?? undefined))
   }
 
-  const previewUrl = avatarFile
-    ? undefined
-    : existingAvatarUrl && !removeAvatar
-      ? existingAvatarUrl
-      : null
-
   return (
-    <Modal
-      title={editingId ? t('authors.editAuthor') : t('authors.newAuthor')}
-      open={open}
-      onCancel={onClose}
-      footer={null}
-      width={640}
-      destroyOnHidden
-    >
-      <Form<AuthorFormValues>
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        disabled={detailLoading}
+    <>
+      <Modal
+        title={editingId ? t('authors.editAuthor') : t('authors.newAuthor')}
+        open={open}
+        onCancel={onClose}
+        footer={null}
+        width={680}
+        destroyOnHidden
       >
-        <Form.Item
-          label={t('authors.name')}
-          name="name"
-          rules={[{ required: true, message: t('authors.enterName') }]}
+        <Form<AuthorFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          disabled={detailLoading}
         >
-          <Input />
-        </Form.Item>
+          <div className="mb-1 flex items-center gap-6">
+            <div className="min-w-0 flex-1">
+              <Form.Item
+                label={t('authors.name')}
+                name="name"
+                rules={[{ required: true, message: t('authors.enterName') }]}
+              >
+                <Input />
+              </Form.Item>
 
-        <Form.Item
-          label={t('authors.lastName')}
-          name="lastName"
-          rules={[{ required: true, message: t('authors.enterLastName') }]}
-        >
-          <Input />
-        </Form.Item>
-
-        <Form.Item label={t('authors.secondName')} name="secondName">
-          <Input />
-        </Form.Item>
-
-        <Form.Item label={t('authors.shortDescription')} name="shortDescription">
-          <Input.TextArea rows={2} />
-        </Form.Item>
-
-        <Form.Item label={t('authors.description')} name="description">
-          <Input.TextArea rows={4} />
-        </Form.Item>
-
-        <Form.Item label={t('authors.avatar')}>
-          <Upload
-            beforeUpload={(file) => {
-              setAvatarFile(file)
-              setRemoveAvatar(false)
-              setExistingAvatarUrl(null)
-              setFileList([
-                {
-                  uid: `-avatar-${Date.now()}`,
-                  name: file.name,
-                  status: 'done',
-                  originFileObj: file,
-                },
-              ])
-              return false
-            }}
-            onRemove={() => {
-              clearAvatar()
-              return true
-            }}
-            fileList={fileList}
-            maxCount={1}
-            listType="picture"
-            showUploadList={{ showPreviewIcon: false }}
-          >
-            <Button icon={<UploadOutlined />}>{t('posts.selectFile')}</Button>
-          </Upload>
-
-          {previewUrl ? (
-            <div style={{ marginTop: 12 }}>
-              <Image
-                src={previewUrl}
-                alt="Author avatar"
-                width={96}
-                style={{ borderRadius: 8, objectFit: 'cover' }}
-              />
-              <div style={{ marginTop: 8 }}>
-                <Button
-                  type="link"
-                  danger
-                  onClick={clearAvatar}
-                  style={{ padding: 0 }}
-                >
-                  {t('authors.removeAvatar')}
-                </Button>
-              </div>
+              <Form.Item
+                label={t('authors.lastName')}
+                name="lastName"
+                rules={[{ required: true, message: t('authors.enterLastName') }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Input />
+              </Form.Item>
             </div>
-          ) : null}
-        </Form.Item>
 
-        <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-          <Button onClick={onClose} style={{ marginRight: 8 }}>
-            {t('common.cancel')}
-          </Button>
-          <Button type="primary" htmlType="submit" loading={saving}>
-            {t('common.save')}
-          </Button>
-        </Form.Item>
-      </Form>
-    </Modal>
+            <Form.Item
+              label={t('authors.avatar')}
+              className="mb-0 shrink-0 [&_.ant-form-item-label]:w-full [&_.ant-form-item-label>label]:w-full [&_.ant-form-item-label>label]:justify-center"
+            >
+              <div className="flex flex-col items-center gap-2">
+                <ImageUploadCard
+                  variant="avatar"
+                  imageUrl={avatarUrl}
+                  initials={avatarInitials}
+                  replaceLabel={t('authors.replaceAvatar')}
+                  disabled={detailLoading}
+                  onSelect={handleSelectAvatar}
+                />
+                {avatarUrl ? (
+                  <Button
+                    type="link"
+                    danger
+                    size="small"
+                    onClick={clearAvatar}
+                    style={{ padding: 0, height: 'auto' }}
+                  >
+                    {t('authors.removeAvatar')}
+                  </Button>
+                ) : null}
+              </div>
+            </Form.Item>
+          </div>
+
+          <Form.Item label={t('authors.secondName')} name="secondName" className="mt-4">
+            <Input />
+          </Form.Item>
+
+          <Form.Item label={t('authors.shortDescription')} name="shortDescription">
+            <Input.TextArea rows={2} />
+          </Form.Item>
+
+          <Form.Item label={t('authors.description')} name="description">
+            <Input.TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+            <Button onClick={onClose} style={{ marginRight: 8 }}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="primary" htmlType="submit" loading={saving}>
+              {t('common.save')}
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <ImageCropModal
+        open={Boolean(cropDraft)}
+        imageSrc={cropDraft?.src ?? null}
+        fileName={cropDraft?.fileName ?? 'avatar.jpg'}
+        aspect={1}
+        cropShape="round"
+        onCancel={closeCropDraft}
+        onComplete={handleCropComplete}
+      />
+    </>
   )
 }

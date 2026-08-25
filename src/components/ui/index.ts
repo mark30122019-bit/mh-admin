@@ -34,5 +34,8 @@ export type { SpinProps } from './Spin'
 export { TableSkeleton, PageContentSkeleton, getTableSkeletonPreset } from './TableSkeleton'
 export type { TableSkeletonColumn, TableSkeletonPreset } from './TableSkeleton'
 
+export { ImageUploadCard } from './ImageUploadCard'
+export { ImageCropModal } from './ImageCropModal'
+
 export { message, notification, notifyApiErrors } from './feedback'
 export type { MessageArgsProps, NotificationArgsProps } from './feedback'
