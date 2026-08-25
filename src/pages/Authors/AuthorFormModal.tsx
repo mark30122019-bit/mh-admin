@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorFormPayload } from '@/api'
 import {
@@ -11,6 +11,7 @@ import {
   Modal,
   message,
 } from '@/components/ui'
+import { useEditFormReveal } from '@/hooks/useEditFormReveal'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
@@ -127,8 +128,8 @@ export function AuthorFormModal({
     })
   }, [dispatch, editingId, form, open])
 
-  useEffect(() => {
-    if (!open || !editingId || !detail) return
+  const hydrateAuthorForm = useCallback(() => {
+    if (!detail) return
 
     form.setFieldsValue({
       name: detail.name,
@@ -140,7 +141,15 @@ export function AuthorFormModal({
     setAvatarFile(undefined)
     setExistingAvatarUrl(detail.avatar?.url ?? null)
     setRemoveAvatar(false)
-  }, [detail, editingId, form, open])
+  }, [detail, form])
+
+  const showSkeleton = useEditFormReveal({
+    open,
+    editingId,
+    detailLoading,
+    detailReady: Boolean(detail),
+    hydrate: hydrateAuthorForm,
+  })
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
@@ -189,8 +198,6 @@ export function AuthorFormModal({
 
     dispatch(authorsActions.saveRequest(payload, editingId ?? undefined))
   }
-
-  const showSkeleton = Boolean(editingId) && detailLoading
 
   return (
     <>
@@ -252,7 +259,6 @@ export function AuthorFormModal({
                   imageUrl={avatarUrl}
                   initials={avatarInitials}
                   replaceLabel={t('authors.replaceAvatar')}
-                  disabled={detailLoading}
                   onSelect={handleSelectAvatar}
                 />
                 {avatarUrl ? (

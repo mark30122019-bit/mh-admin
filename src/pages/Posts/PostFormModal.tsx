@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { PostFormInput } from '@/api'
 import {
@@ -12,6 +12,7 @@ import {
   Select,
   message,
 } from '@/components/ui'
+import { useEditFormReveal } from '@/hooks/useEditFormReveal'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
@@ -97,8 +98,6 @@ export function PostFormModal({
 
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
-  const formBusy = detailLoading || referencesLoading
-  const showSkeleton = Boolean(editingId) && detailLoading
   const watchedTitle = Form.useWatch('title', form)
 
   const authorSelectOptions = useMemo(() => {
@@ -176,8 +175,8 @@ export function PostFormModal({
     })
   }, [dispatch, editingId, form, open])
 
-  useEffect(() => {
-    if (!open || !editingId || !detail) return
+  const hydratePostForm = useCallback(() => {
+    if (!detail) return
 
     form.setFieldsValue({
       title: detail.title,
@@ -192,7 +191,16 @@ export function PostFormModal({
     setPreviewError(
       detail.previewPicture?.url ? null : t('posts.previewRequired'),
     )
-  }, [detail, editingId, form, open, t])
+  }, [detail, form, t])
+
+  const showSkeleton = useEditFormReveal({
+    open,
+    editingId,
+    detailLoading,
+    detailReady: Boolean(detail),
+    extraPending: referencesLoading,
+    hydrate: hydratePostForm,
+  })
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
@@ -265,7 +273,6 @@ export function PostFormModal({
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          disabled={referencesLoading}
         >
           <div className="mb-1 flex items-start gap-6">
             <div className="min-w-0 flex-1">
@@ -312,7 +319,6 @@ export function PostFormModal({
                   imageUrl={previewUrl}
                   replaceLabel={t('posts.replacePreview')}
                   emptyLabel={t('posts.previewHint')}
-                  disabled={formBusy}
                   hasError={Boolean(previewError)}
                   onSelect={handleSelectPreview}
                 />
@@ -366,7 +372,7 @@ export function PostFormModal({
               type="primary"
               htmlType="submit"
               loading={saving}
-              disabled={!hasPreview || formBusy}
+              disabled={!hasPreview || referencesLoading || detailLoading}
             >
               {t('common.save')}
             </Button>
