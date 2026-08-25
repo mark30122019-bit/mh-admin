@@ -1,80 +1,26 @@
 import { apiClient } from './client'
+import { appendFormNumberArray, appendFormValue } from './formData'
+import { LIST_PAGE_SIZE } from './listPageSize'
+import { parsePaginationHeaders } from './pagination'
 import type {
-  ApiPagination,
   FetchPostsParams,
+  PostDetail,
+  PostFormPayload,
   PostListItem,
   PostsListResponse,
 } from './posts.types'
 
-const PAGINATION_HEADERS = {
-  currentPage: 'x-pagination-current-page',
-  pageCount: 'x-pagination-page-count',
-  perPage: 'x-pagination-per-page',
-  totalCount: 'x-pagination-total-count',
-} as const
-
-function readHeaderValue(
-  headers: Record<string, unknown>,
-  key: string,
-): string | undefined {
-  const direct = headers[key]
-  if (typeof direct === 'string' || typeof direct === 'number') {
-    return String(direct)
-  }
-
-  // AxiosHeaders.get(...)
-  const maybeGet = (headers as { get?: (name: string) => unknown }).get
-  if (typeof maybeGet === 'function') {
-    const value = maybeGet.call(headers, key)
-    if (typeof value === 'string' || typeof value === 'number') {
-      return String(value)
-    }
-  }
-
-  return undefined
+function buildPostFormData(payload: PostFormPayload): FormData {
+  const formData = new FormData()
+  appendFormValue(formData, 'code', payload.code)
+  appendFormValue(formData, 'title', payload.title)
+  appendFormValue(formData, 'authorId', payload.authorId)
+  appendFormValue(formData, 'text', payload.text)
+  appendFormNumberArray(formData, 'tagIds', payload.tagIds)
+  appendFormValue(formData, 'previewPicture', payload.previewPicture)
+  return formData
 }
 
-function readHeaderAsNumber(
-  headers: Record<string, unknown>,
-  key: string,
-  fallback: number,
-): number {
-  const raw = readHeaderValue(headers, key)
-  if (raw == null || raw.trim() === '') return fallback
-  const parsed = Number(raw)
-  return Number.isFinite(parsed) ? parsed : fallback
-}
-
-function parsePaginationHeaders(
-  headers: Record<string, unknown>,
-  requestedPage: number,
-): ApiPagination {
-  const normalized: Record<string, unknown> = { ...headers }
-  Object.entries(headers).forEach(([key, value]) => {
-    normalized[key.toLowerCase()] = value
-  })
-
-  return {
-    currentPage: readHeaderAsNumber(
-      normalized,
-      PAGINATION_HEADERS.currentPage,
-      requestedPage,
-    ),
-    pageCount: readHeaderAsNumber(
-      normalized,
-      PAGINATION_HEADERS.pageCount,
-      1,
-    ),
-    perPage: readHeaderAsNumber(normalized, PAGINATION_HEADERS.perPage, 20),
-    totalCount: readHeaderAsNumber(
-      normalized,
-      PAGINATION_HEADERS.totalCount,
-      0,
-    ),
-  }
-}
-
-/** GET /manage/posts — список постов, пагинация в headers. */
 export async function fetchPostsList(
   params: FetchPostsParams = {},
 ): Promise<PostsListResponse> {
@@ -87,8 +33,39 @@ export async function fetchPostsList(
   return {
     items: Array.isArray(response.data) ? response.data : [],
     pagination: parsePaginationHeaders(
-      response.headers as Record<string, unknown>,
+      response.headers,
       page,
+      LIST_PAGE_SIZE.posts,
     ),
   }
+}
+
+export async function fetchPostDetail(id: number): Promise<PostDetail> {
+  const { data } = await apiClient.get<PostDetail>('/manage/posts/detail', {
+    params: { id },
+  })
+  return data
+}
+
+export async function createPost(payload: PostFormPayload): Promise<number> {
+  const { data } = await apiClient.post<number>(
+    '/manage/posts/add',
+    buildPostFormData(payload),
+  )
+  return data
+}
+
+export async function updatePost(
+  id: number,
+  payload: PostFormPayload,
+): Promise<void> {
+  await apiClient.post('/manage/posts/edit', buildPostFormData(payload), {
+    params: { id },
+  })
+}
+
+export async function deletePost(id: number): Promise<void> {
+  await apiClient.delete('/manage/posts/remove', {
+    params: { id },
+  })
 }
