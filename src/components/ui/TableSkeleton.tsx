@@ -252,8 +252,8 @@ export function getTableSkeletonPreset(
 export function PageContentSkeleton() {
   return (
     <div className="mx-auto flex min-h-0 w-full max-w-[1440px] flex-1 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col rounded-lg bg-white p-4 sm:p-5 md:p-6 lg:p-8">
-        <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
+      <div className="admin-page-frame-card flex min-h-0 flex-1 flex-col rounded-lg bg-white p-4 sm:p-5 md:p-6 lg:p-8">
+        <div className="admin-page-toolbar mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
           <Skeleton.Input active style={{ width: 120, height: 28 }} />
           <Skeleton.Button active style={{ width: 128, height: 32 }} />
         </div>

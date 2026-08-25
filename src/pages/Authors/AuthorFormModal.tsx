@@ -84,10 +84,23 @@ export function AuthorFormModal({
   const watchedSecondName = Form.useWatch('secondName', form)
   const watchedShortDescription = Form.useWatch('shortDescription', form)
   const watchedDescription = Form.useWatch('description', form)
+  const [shortViewport, setShortViewport] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      window.matchMedia('(max-height: 799px)').matches,
+  )
   const avatarInitials = useMemo(
     () => getAuthorInitials(watchedName, watchedLastName),
     [watchedName, watchedLastName],
   )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-height: 799px)')
+    const apply = () => setShortViewport(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [])
 
   useEffect(() => {
     if (!avatarFile) {
@@ -299,7 +312,12 @@ export function AuthorFormModal({
 
           <Form.Item label={t('authors.description')} name="description">
             <Input.TextArea
-              autoSize={{ minRows: 4, maxRows: 8 }}
+              className="form-textarea-lg"
+              autoSize={
+                shortViewport
+                  ? { minRows: 2, maxRows: 6 }
+                  : { minRows: 4, maxRows: 8 }
+              }
               showCount
               maxLength={resolveInputMaxLength(
                 FIELD_MAX_LENGTH.authorDescription,

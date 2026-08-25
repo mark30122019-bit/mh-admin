@@ -12,6 +12,7 @@ type AppHeaderProps = {
 export function AppHeader({ profileSlot, actionsSlot }: AppHeaderProps) {
   return (
     <Header
+      className="admin-app-header"
       style={{
         background: '#fff',
         paddingInline: 32,

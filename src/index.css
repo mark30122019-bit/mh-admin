@@ -331,3 +331,71 @@ textarea::-webkit-scrollbar-thumb:active,
   max-height: 280px;
   overflow-y: auto;
 }
+
+/* Компактная панель таблиц при низкой высоте окна */
+@media (max-height: 799px) {
+  .admin-app-header.ant-layout-header {
+    height: 48px !important;
+    line-height: 48px !important;
+    padding-inline: 16px !important;
+  }
+
+  .admin-app-header .ant-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    font-size: 11px !important;
+  }
+
+  .admin-layout-content.ant-layout-content {
+    padding: 8px 10px !important;
+  }
+
+  .admin-page-frame-card {
+    padding: 10px 12px !important;
+  }
+
+  .admin-page-title.ant-typography {
+    font-size: 18px !important;
+    line-height: 1.25 !important;
+  }
+
+  .admin-page-toolbar {
+    margin-bottom: 8px !important;
+    gap: 8px !important;
+  }
+
+  .admin-page-footer {
+    margin-top: 8px !important;
+    padding-top: 0 !important;
+  }
+}
+
+/* Описание автора: −50px при высоте экрана < 800 */
+@media (max-height: 799px) {
+  .form-textarea-lg.ant-input-textarea textarea {
+    max-height: 134px !important; /* ~maxRows:8 (−50px) */
+    overflow-y: auto !important;
+  }
+}
+
+/* Низкие экраны: самые большие текстовые области −100px */
+@media (max-height: 749px) {
+  .rich-text-editor {
+    min-height: 100px;
+  }
+
+  .rich-text-editor .ql-container,
+  .rich-text-editor .ql-editor {
+    min-height: 100px !important;
+  }
+
+  .rich-text-editor .ql-editor {
+    max-height: 180px;
+  }
+
+  .form-textarea-lg.ant-input-textarea textarea {
+    max-height: 92px !important;
+    overflow-y: auto !important;
+  }
+}

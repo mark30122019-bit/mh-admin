@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Avatar, Image, Tooltip, Typography } from 'antd'
+import { Avatar, Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,6 +8,7 @@ import { LIST_PAGE_SIZE } from '@/api'
 import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
+  EllipsisTooltip,
   Modal,
   Pagination,
   Space,
@@ -184,9 +185,7 @@ function AuthorsPageContent() {
         ellipsis: { showTitle: false },
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : (
-            <Tooltip placement="topLeft" title={value}>
-              <span>{value}</span>
-            </Tooltip>
+            <EllipsisTooltip title={value}>{value}</EllipsisTooltip>
           ),
       },
       {
@@ -196,9 +195,7 @@ function AuthorsPageContent() {
         ellipsis: { showTitle: false },
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : (
-            <Tooltip placement="topLeft" title={value}>
-              <span>{value}</span>
-            </Tooltip>
+            <EllipsisTooltip title={value}>{value}</EllipsisTooltip>
           ),
       },
       {
@@ -208,9 +205,7 @@ function AuthorsPageContent() {
         ellipsis: { showTitle: false },
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : (
-            <Tooltip placement="topLeft" title={value || undefined}>
-              <span>{value}</span>
-            </Tooltip>
+            <EllipsisTooltip title={value || undefined}>{value}</EllipsisTooltip>
           ),
       },
       {
@@ -257,8 +252,12 @@ function AuthorsPageContent() {
   return (
     <>
       <AdminPageFrame fill>
-        <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:mb-5">
-          <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
+        <div className="admin-page-toolbar mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3 md:mb-5">
+          <Typography.Title
+            level={2}
+            className="admin-page-title"
+            style={{ margin: 0, fontWeight: 700 }}
+          >
             {t('authors.title')}
           </Typography.Title>
           <Button
@@ -300,7 +299,7 @@ function AuthorsPageContent() {
           )}
         </AdminTableShell>
 
-        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="admin-page-footer mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
           <Typography.Text type="secondary">
             {t('authors.count', { count: items.length })}
           </Typography.Text>

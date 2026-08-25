@@ -33,7 +33,7 @@ export function RichTextEditor({
   const modules = useMemo(() => ({ ...TOOLBAR_MODULES }), [])
 
   return (
-    <div className="rich-text-editor min-h-[200px] [&_.ql-container]:min-h-[200px] [&_.ql-editor]:min-h-[200px]">
+            <div className="rich-text-editor min-h-[200px] max-[749px]:min-h-[100px] [&_.ql-container]:min-h-[200px] max-[749px]:[&_.ql-container]:min-h-[100px] [&_.ql-editor]:min-h-[200px] max-[749px]:[&_.ql-editor]:min-h-[100px]">
       <ReactQuill
         theme="snow"
         value={value ?? ''}

@@ -1,14 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import type { TagFormInput } from '@/api'
+import type { TagFormInput, TagListItem } from '@/api'
 import { Button, Form, Input, Modal, message } from '@/components/ui'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
 import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
 import type { TagsModuleState } from '@/modules/tags/tags.module'
 import {
-  selectTagDetail,
-  selectTagDetailLoading,
   selectTagsSaveError,
   selectTagsSaveFieldErrors,
   selectTagsSaving,
@@ -22,20 +20,18 @@ type TagFormValues = {
 
 type TagFormModalProps = {
   open: boolean
-  editingId: number | null
+  /** Данные из таблицы — без отдельного detail-запроса. */
+  initialTag: TagListItem | null
   onClose: () => void
 }
 
-export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
+export function TagFormModal({ open, initialTag, onClose }: TagFormModalProps) {
   const dispatch = useDispatch()
   const { t } = useTranslation()
   const [form] = Form.useForm<TagFormValues>()
   const wasSavingRef = useRef(false)
+  const editingId = initialTag?.id ?? null
 
-  const detail = useSelector((state: TagsModuleState) => selectTagDetail(state))
-  const detailLoading = useSelector((state: TagsModuleState) =>
-    selectTagDetailLoading(state),
-  )
   const saving = useSelector((state: TagsModuleState) => selectTagsSaving(state))
   const saveError = useSelector((state: TagsModuleState) =>
     selectTagsSaveError(state),
@@ -54,23 +50,16 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
   useEffect(() => {
     if (!open) return
 
-    if (editingId) {
-      dispatch(tagsActions.detailRequest(editingId))
+    if (initialTag) {
+      form.setFieldsValue({
+        name: initialTag.name,
+        sort: initialTag.sort ?? undefined,
+      })
       return
     }
 
-    dispatch(tagsActions.detailClear())
     form.setFieldsValue({ name: '', sort: undefined })
-  }, [dispatch, editingId, form, open])
-
-  useEffect(() => {
-    if (!open || !editingId || !detail) return
-
-    form.setFieldsValue({
-      name: detail.name,
-      sort: detail.sort ?? undefined,
-    })
-  }, [detail, editingId, form, open])
+  }, [form, initialTag, open])
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {
@@ -106,7 +95,6 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        disabled={detailLoading}
       >
         <Form.Item
           label={t('tags.name')}

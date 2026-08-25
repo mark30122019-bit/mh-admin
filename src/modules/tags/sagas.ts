@@ -9,6 +9,7 @@ import {
   updateTag,
   type TagDetail,
   type TagFormPayload,
+  type TagListItem,
 } from '@/api'
 import { generateEntityCode } from '@/utils/generateCode'
 import {
@@ -21,11 +22,17 @@ import {
   type TagsDetailRequestAction,
   type TagsSaveRequestAction,
 } from './actions'
-import { selectTagDetail } from './selectors'
+import { selectTagsItems } from './selectors'
 
 function* resolveTagCode(id?: number): SagaIterator {
   if (!id) {
     return generateEntityCode('tag')
+  }
+
+  const items: TagListItem[] = yield select(selectTagsItems)
+  const fromList = items.find((tag) => tag.id === id)
+  if (fromList) {
+    return fromList.code
   }
 
   const detail: TagDetail | null = yield select(selectTagDetail)

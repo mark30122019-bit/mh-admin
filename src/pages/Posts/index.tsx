@@ -3,7 +3,7 @@ import {
   EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
-import { Image, Tooltip, Typography } from 'antd'
+import { Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -12,6 +12,7 @@ import type { PostListItem } from '@/api'
 import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
+  EllipsisTooltip,
   Modal,
   Pagination,
   Space,
@@ -201,9 +202,7 @@ function PostsPageContent() {
         ellipsis: { showTitle: false },
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : (
-            <Tooltip placement="topLeft" title={value}>
-              <span>{value}</span>
-            </Tooltip>
+            <EllipsisTooltip title={value}>{value}</EllipsisTooltip>
           ),
       },
       {
@@ -219,11 +218,12 @@ function PostsPageContent() {
             lang,
           )
           return (
-            <Tooltip placement="topLeft" title={label}>
-              <span style={orphan ? { color: '#cf1322' } : undefined}>
-                {label}
-              </span>
-            </Tooltip>
+            <EllipsisTooltip
+              title={label}
+              style={orphan ? { color: '#cf1322' } : undefined}
+            >
+              {label}
+            </EllipsisTooltip>
           )
         },
       },
@@ -241,15 +241,15 @@ function PostsPageContent() {
           return (
             <Space size={[4, 4]} wrap={false} className="max-w-full overflow-hidden">
               {resolvedTags.map((tag) => (
-                <Tag
-                  key={tag.key}
-                  color={tag.orphan ? 'error' : undefined}
-                  title={tag.label}
-                  style={{ maxWidth: 96, marginInlineEnd: 0 }}
-                  className="!m-0 truncate"
-                >
-                  {tag.label}
-                </Tag>
+                <EllipsisTooltip key={tag.key} title={tag.label}>
+                  <Tag
+                    color={tag.orphan ? 'error' : undefined}
+                    style={{ maxWidth: 96, marginInlineEnd: 0 }}
+                    className="!m-0 truncate"
+                  >
+                    {tag.label}
+                  </Tag>
+                </EllipsisTooltip>
               ))}
             </Space>
           )
@@ -301,9 +301,13 @@ function PostsPageContent() {
   return (
     <>
       <AdminPageFrame fill>
-        <div className="mb-4 shrink-0">
+        <div className="admin-page-toolbar mb-4 shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
+            <Typography.Title
+              level={2}
+              className="admin-page-title"
+              style={{ margin: 0, fontWeight: 700 }}
+            >
               {t('posts.title')}
             </Typography.Title>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
@@ -340,7 +344,7 @@ function PostsPageContent() {
           )}
         </AdminTableShell>
 
-        <div className="mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="admin-page-footer mt-4 flex shrink-0 flex-wrap items-center justify-between gap-2 pt-1">
           <Typography.Text type="secondary">
             {t('posts.count', { count: pagination.totalCount })}
           </Typography.Text>

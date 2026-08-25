@@ -13,6 +13,8 @@ export type { SelectProps } from './Select'
 export { Table } from './Table'
 export type { TableProps } from './Table'
 
+export { EllipsisTooltip } from './EllipsisTooltip'
+
 export { Pagination } from './Pagination'
 export type { PaginationProps } from './Pagination'
 
@@ -36,7 +38,7 @@ export type { TableSkeletonColumn, TableSkeletonPreset } from './TableSkeleton'
 
 export { ImageUploadCard } from './ImageUploadCard'
 export { ImageCropModal } from './ImageCropModal'
-export { AuthorFormSkeleton, PostFormSkeleton } from './FormModalSkeleton'
+export { AuthorFormSkeleton, PostFormSkeleton, TagFormSkeleton } from './FormModalSkeleton'
 
 export { message, notification, notifyApiErrors } from './feedback'
 export type { MessageArgsProps, NotificationArgsProps } from './feedback'

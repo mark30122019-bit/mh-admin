@@ -30,7 +30,7 @@ export function AdminPageFrame({
     >
       <div
         className={[
-          'rounded-lg bg-white p-3 sm:p-4 md:p-4 xl:p-6 2xl:p-8',
+          'admin-page-frame-card rounded-lg bg-white p-3 sm:p-4 md:p-4 xl:p-6 2xl:p-8',
           fill ? 'flex min-h-0 flex-1 flex-col' : '',
           className,
         ]

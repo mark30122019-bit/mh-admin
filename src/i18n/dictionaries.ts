@@ -122,7 +122,7 @@ export const ru: TranslationDict = {
     apply: 'Применить',
   },
   nav: {
-    posts: 'Управление постами',
+    posts: 'Посты',
     authors: 'Авторы',
     tags: 'Теги',
   },
@@ -230,7 +230,7 @@ export const en: TranslationDict = {
     apply: 'Apply',
   },
   nav: {
-    posts: 'Posts Management',
+    posts: 'Posts',
     authors: 'Authors',
     tags: 'Tags',
   },
