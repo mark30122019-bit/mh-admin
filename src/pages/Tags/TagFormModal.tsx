@@ -15,7 +15,7 @@ import {
 
 type TagFormValues = {
   name: string
-  sort: number
+  sort?: number | string | null
 }
 
 type TagFormModalProps = {
@@ -55,7 +55,7 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
     }
 
     dispatch(tagsActions.detailClear())
-    form.setFieldsValue({ name: '', sort: 500 })
+    form.setFieldsValue({ name: '', sort: undefined })
   }, [dispatch, editingId, form, open])
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
 
     form.setFieldsValue({
       name: detail.name,
-      sort: detail.sort,
+      sort: detail.sort ?? undefined,
     })
   }, [detail, editingId, form, open])
 
@@ -76,9 +76,13 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
   }, [editingId, onClose, saveError, saving])
 
   const handleSubmit = (values: TagFormValues) => {
+    const rawSort = values.sort
+    const hasSort =
+      rawSort !== undefined && rawSort !== null && String(rawSort).trim() !== ''
+
     const payload: TagFormInput = {
       name: values.name,
-      sort: Number(values.sort),
+      ...(hasSort ? { sort: Number(rawSort) } : {}),
     }
 
     dispatch(tagsActions.saveRequest(payload, editingId ?? undefined))
@@ -107,12 +111,8 @@ export function TagFormModal({ open, editingId, onClose }: TagFormModalProps) {
           <Input />
         </Form.Item>
 
-        <Form.Item
-          label="Приоритет"
-          name="sort"
-          rules={[{ required: true, message: 'Укажите приоритет' }]}
-        >
-          <Input type="number" />
+        <Form.Item label="Приоритет" name="sort">
+          <Input type="number" placeholder="Необязательно" />
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

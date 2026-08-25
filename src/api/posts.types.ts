@@ -13,9 +13,16 @@ export interface PostListItem {
   id: number
   title: string
   code: string
-  authorName: string
+  /**
+   * Может отсутствовать в ответе; нужен для детекта удалённого автора.
+   * На проводе API иногда приходит строкой — нормализуем в api-слое.
+   */
+  authorId?: number | null
+  authorName: string | null
   previewPicture: ApiPicture | null
-  tagNames: string[]
+  /** Может отсутствовать; при наличии сверяем с актуальными тегами. */
+  tagIds?: number[]
+  tagNames: Array<string | null>
   updatedAt: string
   createdAt: string
 }
@@ -39,7 +46,8 @@ export interface PostDetail {
   code: string
   text: string
   previewPicture: ApiPicture | null
-  author: PostAuthorRef
+  /** null/undefined, если автор удалён (данные-сироты). */
+  author: PostAuthorRef | null
   tags: PostTagRef[]
   updatedAt: string
   createdAt: string

@@ -122,7 +122,8 @@ function TagsPageContent() {
       title: 'Приоритет',
       dataIndex: 'sort',
       width: 120,
-      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+      render: (value: number | null | undefined, record) =>
+        isTablePlaceholderRow(record) ? null : (value ?? '—'),
     },
     {
       title: 'Created At',

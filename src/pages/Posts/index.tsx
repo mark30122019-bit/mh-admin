@@ -28,12 +28,18 @@ import { postsActions } from '@/modules/posts/actions'
 import { getPostsModule } from '@/modules/posts/posts.module'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
+  selectPostsAuthorOptions,
   selectPostsDeletingId,
   selectPostsError,
   selectPostsItems,
   selectPostsLoading,
   selectPostsPagination,
+  selectPostsTagOptions,
 } from '@/modules/posts/selectors'
+import {
+  resolvePostAuthorLabel,
+  resolvePostTagLabels,
+} from '@/utils/orphanLabels'
 import {
   isTablePlaceholderRow,
   padTablePage,
@@ -67,6 +73,12 @@ function PostsPageContent() {
   const deletingId = useSelector((state: PostsModuleState) =>
     selectPostsDeletingId(state),
   )
+  const authorCatalog = useSelector((state: PostsModuleState) =>
+    selectPostsAuthorOptions(state),
+  )
+  const tagCatalog = useSelector((state: PostsModuleState) =>
+    selectPostsTagOptions(state),
+  )
 
   const [search, setSearch] = useState('')
   const [authorFilter, setAuthorFilter] = useState<string>('all')
@@ -88,25 +100,30 @@ function PostsPageContent() {
 
   const authorOptions = useMemo(() => {
     const uniqueAuthors = Array.from(
-      new Set(items.map((item) => item.authorName).filter(Boolean)),
+      new Set(
+        items
+          .map((item) => resolvePostAuthorLabel(item, authorCatalog))
+          .filter(Boolean),
+      ),
     ).sort()
 
     return [
       { value: 'all', label: 'All authors' },
       ...uniqueAuthors.map((author) => ({ value: author, label: author })),
     ]
-  }, [items])
+  }, [authorCatalog, items])
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       const matchesSearch = item.title
         .toLowerCase()
         .includes(search.trim().toLowerCase())
+      const authorLabel = resolvePostAuthorLabel(item, authorCatalog)
       const matchesAuthor =
-        authorFilter === 'all' || item.authorName === authorFilter
+        authorFilter === 'all' || authorLabel === authorFilter
       return matchesSearch && matchesAuthor
     })
-  }, [authorFilter, items, search])
+  }, [authorCatalog, authorFilter, items, search])
 
   const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
   const isFirstPage = pagination.currentPage === 1
@@ -120,11 +137,6 @@ function PostsPageContent() {
 
   const openCreateModal = () => {
     setEditingId(null)
-    setModalOpen(true)
-  }
-
-  const openEditModal = (id: number) => {
-    setEditingId(id)
     setModalOpen(true)
   }
 
@@ -197,19 +209,37 @@ function PostsPageContent() {
     {
       title: 'Author',
       dataIndex: 'authorName',
-      width: 160,
-      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+      width: 180,
+      render: (_, record) => {
+        if (isTablePlaceholderRow(record)) return null
+        const label = resolvePostAuthorLabel(record, authorCatalog)
+        const isOrphan = label.includes('(Удален)')
+        return (
+          <span style={isOrphan ? { color: '#cf1322' } : undefined}>
+            {label}
+          </span>
+        )
+      },
     },
     {
       title: 'Tags',
       dataIndex: 'tagNames',
-      width: 180,
-      render: (tags: string[] | undefined, record) => {
+      width: 200,
+      render: (_, record) => {
         if (isTablePlaceholderRow(record)) return null
+        const resolvedTags = resolvePostTagLabels(record, tagCatalog)
+        if (resolvedTags.length === 0) {
+          return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
+        }
         return (
           <Space wrap size={[4, 4]}>
-            {(tags ?? []).map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
+            {resolvedTags.map((tag) => (
+              <Tag
+                key={tag.key}
+                color={tag.orphan ? 'error' : undefined}
+              >
+                {tag.label}
+              </Tag>
             ))}
           </Space>
         )
@@ -250,7 +280,7 @@ function PostsPageContent() {
       },
     },
   ],
-    [confirmDelete, deletingId],
+    [authorCatalog, confirmDelete, deletingId, tagCatalog],
   )
 
   return (

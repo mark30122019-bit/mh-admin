@@ -14,6 +14,9 @@ export function getPostsModule(): ISagaModule<PostsModuleState> {
       posts: postsReducer,
     },
     sagas: [postsSaga],
-    initialActions: [postsActions.fetchRequest(1)],
+    initialActions: [
+      postsActions.fetchRequest(1),
+      postsActions.referencesRequest(),
+    ],
   }
 }

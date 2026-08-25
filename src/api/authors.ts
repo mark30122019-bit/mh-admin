@@ -1,3 +1,4 @@
+import { toEntityId } from '@/utils/entityId'
 import { apiClient } from './client'
 import { appendFormValue } from './formData'
 import type {
@@ -5,6 +6,26 @@ import type {
   AuthorFormPayload,
   AuthorListItem,
 } from './authors.types'
+
+function normalizeAuthorListItem(raw: AuthorListItem): AuthorListItem {
+  return {
+    ...raw,
+    id: toEntityId(raw.id) ?? Number(raw.id),
+    avatar: raw.avatar
+      ? { ...raw.avatar, id: toEntityId(raw.avatar.id) ?? raw.avatar.id }
+      : null,
+  }
+}
+
+function normalizeAuthorDetail(raw: AuthorDetail): AuthorDetail {
+  return {
+    ...raw,
+    id: toEntityId(raw.id) ?? Number(raw.id),
+    avatar: raw.avatar
+      ? { ...raw.avatar, id: toEntityId(raw.avatar.id) ?? raw.avatar.id }
+      : null,
+  }
+}
 
 function buildAuthorFormData(payload: AuthorFormPayload): FormData {
   const formData = new FormData()
@@ -23,14 +44,15 @@ function buildAuthorFormData(payload: AuthorFormPayload): FormData {
 /** Полный список авторов (бэкенд отдаёт массив целиком). */
 export async function fetchAuthorsList(): Promise<AuthorListItem[]> {
   const { data } = await apiClient.get<AuthorListItem[]>('/manage/authors')
-  return Array.isArray(data) ? data : []
+  const items = Array.isArray(data) ? data : []
+  return items.map(normalizeAuthorListItem)
 }
 
 export async function fetchAuthorDetail(id: number): Promise<AuthorDetail> {
   const { data } = await apiClient.get<AuthorDetail>('/manage/authors/detail', {
     params: { id },
   })
-  return data
+  return normalizeAuthorDetail(data)
 }
 
 export async function createAuthor(payload: AuthorFormPayload): Promise<void> {

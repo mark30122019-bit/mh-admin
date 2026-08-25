@@ -1,9 +1,21 @@
 import { Modal as AntModal } from 'antd'
 import type { ModalFuncProps, ModalProps } from 'antd'
+import type { CSSProperties } from 'react'
 
 export type { ModalFuncProps, ModalProps }
 
 type AppModalType = typeof AntModal
+
+type ModalStylesObject = {
+  root?: CSSProperties
+  header?: CSSProperties
+  body?: CSSProperties
+  footer?: CSSProperties
+  mask?: CSSProperties
+  wrapper?: CSSProperties
+  content?: CSSProperties
+  close?: CSSProperties
+}
 
 /**
  * Модальное окно для форм добавления/редактирования сущностей.
@@ -11,17 +23,20 @@ type AppModalType = typeof AntModal
  */
 export const Modal = Object.assign(
   function Modal({ styles, ...props }: ModalProps) {
+    const styleObject: ModalStylesObject =
+      styles && typeof styles === 'object' ? (styles as ModalStylesObject) : {}
+
     return (
       <AntModal
         centered
         destroyOnHidden
         maskClosable={false}
         styles={{
-          ...styles,
+          ...styleObject,
           body: {
             maxHeight: 'calc(100vh - 160px)',
             overflowY: 'auto',
-            ...styles?.body,
+            ...styleObject.body,
           },
         }}
         {...props}

@@ -1,7 +1,7 @@
 import { UploadOutlined } from '@ant-design/icons'
 import { Image, Upload } from 'antd'
 import type { UploadFile } from 'antd/es/upload/interface'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { PostFormInput } from '@/api'
 import { Button, Form, Input, Modal, Select, message } from '@/components/ui'
@@ -18,6 +18,8 @@ import {
   selectPostsSaving,
   selectPostsTagOptions,
 } from '@/modules/posts/selectors'
+import { idsEqual, toEntityId } from '@/utils/entityId'
+import { formatDeletedEntityLabel, formatAuthorDisplayName } from '@/utils/orphanLabels'
 
 type PostFormValues = {
   title: string
@@ -79,6 +81,35 @@ export function PostFormModal({
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
 
+  const authorSelectOptions = useMemo(() => {
+    const options = authorOptions.map((author) => ({
+      value: toEntityId(author.id) ?? author.id,
+      label: formatAuthorDisplayName(author),
+    }))
+
+    const orphanAuthorId = toEntityId(detail?.author?.id)
+    if (
+      orphanAuthorId != null &&
+      !authorOptions.some((author) => idsEqual(author.id, orphanAuthorId))
+    ) {
+      options.unshift({
+        value: orphanAuthorId,
+        label: formatDeletedEntityLabel(orphanAuthorId),
+      })
+    }
+
+    return options
+  }, [authorOptions, detail?.author?.id])
+
+  const tagSelectOptions = useMemo(
+    () =>
+      tagOptions.map((tag) => ({
+        value: toEntityId(tag.id) ?? tag.id,
+        label: tag.name,
+      })),
+    [tagOptions],
+  )
+
   useFormApiErrors(form, formFieldErrors, saveError, 'Post')
 
   useEffect(() => {
@@ -127,8 +158,10 @@ export function PostFormModal({
 
     form.setFieldsValue({
       title: detail.title,
-      authorId: detail.author.id,
-      tagIds: detail.tags.map((tag) => tag.id),
+      authorId: toEntityId(detail.author?.id) ?? undefined,
+      tagIds: (detail.tags ?? [])
+        .map((tag) => toEntityId(tag.id))
+        .filter((id): id is number => id != null),
       text: detail.text,
     })
     setPreviewFile(undefined)
@@ -201,10 +234,10 @@ export function PostFormModal({
         >
           <Select
             loading={referencesLoading}
-            options={authorOptions.map((author) => ({
-              value: author.id,
-              label: `${author.name} ${author.lastName}`.trim(),
-            }))}
+            options={authorSelectOptions}
+            placeholder="Выберите автора"
+            showSearch
+            optionFilterProp="label"
           />
         </Form.Item>
 
@@ -212,10 +245,10 @@ export function PostFormModal({
           <Select
             mode="multiple"
             loading={referencesLoading}
-            options={tagOptions.map((tag) => ({
-              value: tag.id,
-              label: tag.name,
-            }))}
+            options={tagSelectOptions}
+            placeholder="Выберите теги"
+            // Удалённые теги без option отобразятся как ID —
+            // админ может снять их крестиком перед сохранением.
           />
         </Form.Item>
 

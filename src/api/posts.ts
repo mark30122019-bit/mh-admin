@@ -1,3 +1,4 @@
+import { toEntityId } from '@/utils/entityId'
 import { apiClient } from './client'
 import { appendFormNumberArray, appendFormValue } from './formData'
 import { LIST_PAGE_SIZE } from './listPageSize'
@@ -9,6 +10,65 @@ import type {
   PostListItem,
   PostsListResponse,
 } from './posts.types'
+
+function normalizePicture(
+  picture: PostListItem['previewPicture'],
+): PostListItem['previewPicture'] {
+  if (!picture) return null
+  return {
+    ...picture,
+    id: toEntityId(picture.id) ?? picture.id,
+  }
+}
+
+function normalizePostListItem(raw: PostListItem): PostListItem {
+  const rawExtra = raw as PostListItem & {
+    author_id?: number | string | null
+    author?: { id?: number | string } | null
+    tags?: Array<{ id?: number | string }>
+  }
+
+  const authorId = toEntityId(
+    raw.authorId ?? rawExtra.author_id ?? rawExtra.author?.id,
+  )
+
+  const tagIdsFromField = raw.tagIds
+    ?.map((id) => toEntityId(id))
+    .filter((id): id is number => id != null)
+
+  const tagIdsFromNested = rawExtra.tags
+    ?.map((tag) => toEntityId(tag.id))
+    .filter((id): id is number => id != null)
+
+  return {
+    ...raw,
+    id: toEntityId(raw.id) ?? Number(raw.id),
+    authorId: authorId === null && raw.authorId === undefined && rawExtra.author_id === undefined && rawExtra.author?.id === undefined
+      ? undefined
+      : authorId,
+    previewPicture: normalizePicture(raw.previewPicture),
+    tagIds: tagIdsFromField?.length ? tagIdsFromField : tagIdsFromNested,
+  }
+}
+
+function normalizePostDetail(raw: PostDetail): PostDetail {
+  return {
+    ...raw,
+    id: toEntityId(raw.id) ?? Number(raw.id),
+    previewPicture: normalizePicture(raw.previewPicture),
+    author: raw.author
+      ? {
+          ...raw.author,
+          id: toEntityId(raw.author.id) ?? Number(raw.author.id),
+          avatar: normalizePicture(raw.author.avatar),
+        }
+      : null,
+    tags: (raw.tags ?? []).map((tag) => ({
+      ...tag,
+      id: toEntityId(tag.id) ?? Number(tag.id),
+    })),
+  }
+}
 
 function buildPostFormData(payload: PostFormPayload): FormData {
   const formData = new FormData()
@@ -30,8 +90,10 @@ export async function fetchPostsList(
     params: { page },
   })
 
+  const rawItems = Array.isArray(response.data) ? response.data : []
+
   return {
-    items: Array.isArray(response.data) ? response.data : [],
+    items: rawItems.map(normalizePostListItem),
     pagination: parsePaginationHeaders(
       response.headers,
       page,
@@ -44,7 +106,7 @@ export async function fetchPostDetail(id: number): Promise<PostDetail> {
   const { data } = await apiClient.get<PostDetail>('/manage/posts/detail', {
     params: { id },
   })
-  return data
+  return normalizePostDetail(data)
 }
 
 export async function createPost(payload: PostFormPayload): Promise<number> {
@@ -52,7 +114,7 @@ export async function createPost(payload: PostFormPayload): Promise<number> {
     '/manage/posts/add',
     buildPostFormData(payload),
   )
-  return data
+  return toEntityId(data) ?? Number(data)
 }
 
 export async function updatePost(
