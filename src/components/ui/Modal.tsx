@@ -5,10 +5,28 @@ export type { ModalFuncProps, ModalProps }
 
 type AppModalType = typeof AntModal
 
-/** Модальное окно для форм добавления/редактирования сущностей. */
+/**
+ * Модальное окно для форм добавления/редактирования сущностей.
+ * По умолчанию по центру экрана; тело скроллится, если не влезает по высоте.
+ */
 export const Modal = Object.assign(
-  function Modal(props: ModalProps) {
-    return <AntModal destroyOnHidden maskClosable={false} {...props} />
+  function Modal({ styles, ...props }: ModalProps) {
+    return (
+      <AntModal
+        centered
+        destroyOnHidden
+        maskClosable={false}
+        styles={{
+          ...styles,
+          body: {
+            maxHeight: 'calc(100vh - 160px)',
+            overflowY: 'auto',
+            ...styles?.body,
+          },
+        }}
+        {...props}
+      />
+    )
   },
   {
     info: AntModal.info,

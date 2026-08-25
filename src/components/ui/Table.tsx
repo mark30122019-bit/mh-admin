@@ -7,7 +7,8 @@ type AppTableType = typeof AntTable
 
 /**
  * Таблица списков (посты, авторы, теги).
- * Пагинацию по умолчанию отключаем — управляем через Pagination + headers API.
+ * Пагинация по умолчанию отключена — управляется снаружи.
+ * Фиксированную высоту страницы обеспечивают placeholder-строки (padTablePage).
  */
 export const Table = Object.assign(
   function Table<RecordType extends object = Record<string, unknown>>(
