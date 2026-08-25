@@ -49,7 +49,11 @@ export function authorsReducer(
 
   switch (authorsAction.type) {
     case AUTHORS_FETCH_REQUEST:
-      return { ...state, loading: true, error: null }
+      return {
+        ...state,
+        loading: state.items.length === 0,
+        error: null,
+      }
     case AUTHORS_FETCH_SUCCESS:
       return {
         ...state,

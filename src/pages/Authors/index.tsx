@@ -5,20 +5,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorListItem } from '@/api'
 import { LIST_PAGE_SIZE } from '@/api'
-import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
-import { MainLayout } from '@/components/Layout'
 import {
   Button,
   Modal,
   Pagination,
   Space,
   Table,
+  TableSkeleton,
   message,
   notification,
 } from '@/components/ui'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
-import { getAuthorsModule } from '@/modules/authors/authors.module'
 import type { AuthorsModuleState } from '@/modules/authors/authors.module'
 import {
   selectAuthorsDeletingId,
@@ -180,25 +178,6 @@ function AuthorsPageContent() {
           isTablePlaceholderRow(record) ? null : value,
       },
       {
-        title: t('authors.shortDescription'),
-        dataIndex: 'shortDescription',
-        ellipsis: true,
-        render: (value: string | undefined, record) => {
-          if (isTablePlaceholderRow(record)) return null
-          if (!value) {
-            return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
-          }
-          return (
-            <Typography.Text
-              ellipsis={{ tooltip: value }}
-              style={{ maxWidth: 280 }}
-            >
-              {value}
-            </Typography.Text>
-          )
-        },
-      },
-      {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
         width: 140,
@@ -237,7 +216,7 @@ function AuthorsPageContent() {
   )
 
   return (
-    <MainLayout>
+    <>
       <div
         style={{
           background: '#fff',
@@ -268,20 +247,21 @@ function AuthorsPageContent() {
           </Button>
         </div>
 
-        <Table<AuthorTableRow>
-          columns={columns}
-          dataSource={pageItems}
-          loading={loading}
-          pagination={false}
-          onRow={(record) => ({
-            className: isTablePlaceholderRow(record)
-              ? 'table-row-placeholder'
-              : undefined,
-          })}
-          locale={{
-            emptyText: loading ? t('common.loading') : t('authors.noAuthors'),
-          }}
-        />
+        {loading ? (
+          <TableSkeleton rows={pageSize} />
+        ) : (
+          <Table<AuthorTableRow>
+            columns={columns}
+            dataSource={pageItems}
+            pagination={false}
+            onRow={(record) => ({
+              className: isTablePlaceholderRow(record)
+                ? 'table-row-placeholder'
+                : undefined,
+            })}
+            locale={{ emptyText: t('authors.noAuthors') }}
+          />
+        )}
 
         <div
           style={{
@@ -315,14 +295,10 @@ function AuthorsPageContent() {
           dispatch(authorsActions.detailClear())
         }}
       />
-    </MainLayout>
+    </>
   )
 }
 
 export default function AuthorsPage() {
-  return (
-    <DynamicModuleLoader modules={[getAuthorsModule()]} strictMode>
-      <AuthorsPageContent />
-    </DynamicModuleLoader>
-  )
+  return <AuthorsPageContent />
 }

@@ -74,16 +74,20 @@ export function postsReducer(
   const postsAction = action as PostsAction
 
   switch (postsAction.type) {
-    case POSTS_FETCH_REQUEST:
+    case POSTS_FETCH_REQUEST: {
+      const nextPage = postsAction.payload.page
+      const isPageChange = state.pagination.currentPage !== nextPage
       return {
         ...state,
-        loading: true,
+        // Скелетон только при первой загрузке или смене страницы — не при возврате в раздел.
+        loading: state.items.length === 0 || isPageChange,
         error: null,
         pagination: {
           ...state.pagination,
-          currentPage: postsAction.payload.page,
+          currentPage: nextPage,
         },
       }
+    }
     case POSTS_FETCH_SUCCESS:
       return {
         ...state,

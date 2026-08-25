@@ -7,6 +7,17 @@ import { useTranslation } from '@/hooks/useTranslation'
 
 const { Sider } = Layout
 
+const PREFETCH_BY_PATH: Record<string, () => Promise<unknown>> = {
+  '/posts': () => import('@/pages/Posts'),
+  '/authors': () => import('@/pages/Authors'),
+  '/tags': () => import('@/pages/Tags'),
+}
+
+function prefetch(path: string) {
+  const loader = PREFETCH_BY_PATH[path]
+  if (loader) void loader()
+}
+
 export function Sidebar() {
   const history = useHistory()
   const location = useLocation()
@@ -17,17 +28,25 @@ export function Sidebar() {
       {
         key: '/posts',
         icon: <FileTextOutlined />,
-        label: t('nav.posts'),
+        label: (
+          <span onMouseEnter={() => prefetch('/posts')}>{t('nav.posts')}</span>
+        ),
       },
       {
         key: '/authors',
         icon: <TeamOutlined />,
-        label: t('nav.authors'),
+        label: (
+          <span onMouseEnter={() => prefetch('/authors')}>
+            {t('nav.authors')}
+          </span>
+        ),
       },
       {
         key: '/tags',
         icon: <TagsOutlined />,
-        label: t('nav.tags'),
+        label: (
+          <span onMouseEnter={() => prefetch('/tags')}>{t('nav.tags')}</span>
+        ),
       },
     ],
     [t],

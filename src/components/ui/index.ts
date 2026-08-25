@@ -31,5 +31,7 @@ export type { SpaceProps } from './Space'
 export { Spin } from './Spin'
 export type { SpinProps } from './Spin'
 
+export { TableSkeleton, PageContentSkeleton } from './TableSkeleton'
+
 export { message, notification, notifyApiErrors } from './feedback'
 export type { MessageArgsProps, NotificationArgsProps } from './feedback'

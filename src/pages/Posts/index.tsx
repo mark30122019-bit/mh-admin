@@ -10,8 +10,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { LIST_PAGE_SIZE, getPostsFirstPageMinHeight } from '@/api'
 import type { PostListItem } from '@/api'
-import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
-import { MainLayout } from '@/components/Layout'
 import {
   Button,
   Input,
@@ -21,12 +19,12 @@ import {
   Space,
   Table,
   Tag,
+  TableSkeleton,
   message,
   notification,
 } from '@/components/ui'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
-import { getPostsModule } from '@/modules/posts/posts.module'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
   selectPostsAuthorOptions,
@@ -298,7 +296,7 @@ function PostsPageContent() {
   )
 
   return (
-    <MainLayout>
+    <>
       <div
         style={{
           background: '#fff',
@@ -353,20 +351,21 @@ function PostsPageContent() {
               : undefined
           }
         >
-          <Table<PostTableRow>
-            columns={columns}
-            dataSource={tableRows}
-            loading={loading}
-            pagination={false}
-            onRow={(record) => ({
-              className: isTablePlaceholderRow(record)
-                ? 'table-row-placeholder'
-                : undefined,
-            })}
-            locale={{
-              emptyText: loading ? t('common.loading') : t('posts.noPosts'),
-            }}
-          />
+          {loading ? (
+            <TableSkeleton rows={pageSize} />
+          ) : (
+            <Table<PostTableRow>
+              columns={columns}
+              dataSource={tableRows}
+              pagination={false}
+              onRow={(record) => ({
+                className: isTablePlaceholderRow(record)
+                  ? 'table-row-placeholder'
+                  : undefined,
+              })}
+              locale={{ emptyText: t('posts.noPosts') }}
+            />
+          )}
         </div>
 
         <div
@@ -398,14 +397,10 @@ function PostsPageContent() {
         page={pagination.currentPage}
         onClose={closeModal}
       />
-    </MainLayout>
+    </>
   )
 }
 
 export default function PostsPage() {
-  return (
-    <DynamicModuleLoader modules={[getPostsModule()]} strictMode>
-      <PostsPageContent />
-    </DynamicModuleLoader>
-  )
+  return <PostsPageContent />
 }

@@ -49,7 +49,11 @@ export function tagsReducer(
 
   switch (tagsAction.type) {
     case TAGS_FETCH_REQUEST:
-      return { ...state, loading: true, error: null }
+      return {
+        ...state,
+        loading: state.items.length === 0,
+        error: null,
+      }
     case TAGS_FETCH_SUCCESS:
       return { ...state, loading: false, items: tagsAction.payload.items }
     case TAGS_FETCH_FAILURE:
