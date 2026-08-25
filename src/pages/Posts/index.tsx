@@ -6,30 +6,42 @@ import {
 } from '@ant-design/icons'
 import { Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { LIST_PAGE_SIZE, getPostsFirstPageMinHeight } from '@/api'
 import type { PostListItem } from '@/api/posts.types'
 import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
 import { MainLayout } from '@/components/Layout'
 import {
   Button,
   Input,
+  Modal,
   Pagination,
   Select,
   Space,
   Table,
   Tag,
+  message,
   notification,
 } from '@/components/ui'
 import { postsActions } from '@/modules/posts/actions'
 import { getPostsModule } from '@/modules/posts/posts.module'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
+  selectPostsDeletingId,
   selectPostsError,
   selectPostsItems,
   selectPostsLoading,
   selectPostsPagination,
 } from '@/modules/posts/selectors'
+import {
+  isTablePlaceholderRow,
+  padTablePage,
+  type TablePlaceholderRow,
+} from '@/utils/padTablePage'
+import { PostFormModal } from './PostFormModal'
+
+type PostTableRow = PostListItem | TablePlaceholderRow
 
 function formatCreatedAt(value: string): string {
   const date = new Date(value)
@@ -42,7 +54,6 @@ function formatCreatedAt(value: string): string {
   })
 }
 
-/** Контент страницы — внутри DynamicModuleLoader, когда posts reducer уже в store. */
 function PostsPageContent() {
   const dispatch = useDispatch()
   const items = useSelector((state: PostsModuleState) => selectPostsItems(state))
@@ -53,18 +64,27 @@ function PostsPageContent() {
     selectPostsLoading(state),
   )
   const error = useSelector((state: PostsModuleState) => selectPostsError(state))
+  const deletingId = useSelector((state: PostsModuleState) =>
+    selectPostsDeletingId(state),
+  )
 
   const [search, setSearch] = useState('')
   const [authorFilter, setAuthorFilter] = useState<string>('all')
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const prevDeletingIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (!error) return
-
-    notification.error({
-      message: 'Failed to load posts',
-      description: error,
-    })
+    notification.error({ message: 'Failed to load posts', description: error })
   }, [error])
+
+  useEffect(() => {
+    if (prevDeletingIdRef.current && deletingId === null) {
+      message.success('Post deleted')
+    }
+    prevDeletingIdRef.current = deletingId
+  }, [deletingId])
 
   const authorOptions = useMemo(() => {
     const uniqueAuthors = Array.from(
@@ -88,73 +108,150 @@ function PostsPageContent() {
     })
   }, [authorFilter, items, search])
 
-  const columns: ColumnsType<PostListItem> = [
+  const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
+  const isFirstPage = pagination.currentPage === 1
+  const skipPlaceholdersOnFirstPage =
+    isFirstPage && filteredItems.length < pageSize
+
+  const tableRows = useMemo(() => {
+    if (skipPlaceholdersOnFirstPage) return filteredItems
+    return padTablePage(filteredItems, pageSize)
+  }, [filteredItems, pageSize, skipPlaceholdersOnFirstPage])
+
+  const openCreateModal = () => {
+    setEditingId(null)
+    setModalOpen(true)
+  }
+
+  const openEditModal = (id: number) => {
+    setEditingId(id)
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+    setEditingId(null)
+    dispatch(postsActions.detailClear())
+  }
+
+  const confirmDelete = useCallback(
+    (id: number) => {
+      Modal.confirm({
+        title: 'Delete this post?',
+        content: 'Это действие нельзя отменить.',
+        okText: 'Удалить',
+        cancelText: 'Отмена',
+        okButtonProps: { danger: true },
+        centered: true,
+        onOk: () => {
+          dispatch(postsActions.deleteRequest(id, pagination.currentPage))
+        },
+      })
+    },
+    [dispatch, pagination.currentPage],
+  )
+
+  const columns: ColumnsType<PostTableRow> = useMemo(
+    () => [
     {
       title: 'ID',
       dataIndex: 'id',
       width: 72,
+      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+    },
+    {
+      title: 'Preview',
+      dataIndex: 'previewPicture',
+      width: 88,
+      render: (_, record) => {
+        if (isTablePlaceholderRow(record)) return null
+        const url = record.previewPicture?.url
+        if (!url) {
+          return (
+            <span style={{ color: 'rgba(0, 0, 0, 0.25)', fontSize: 12 }}>
+              —
+            </span>
+          )
+        }
+        return (
+          <img
+            src={url}
+            alt={record.title}
+            width={56}
+            height={40}
+            style={{
+              objectFit: 'cover',
+              borderRadius: 6,
+              display: 'block',
+              background: '#f5f5f5',
+            }}
+          />
+        )
+      },
     },
     {
       title: 'Title',
       dataIndex: 'title',
+      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
     },
     {
       title: 'Author',
       dataIndex: 'authorName',
       width: 160,
+      render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
     },
     {
       title: 'Tags',
       dataIndex: 'tagNames',
       width: 180,
-      render: (tags: string[] | undefined) => (
-        <Space wrap size={[4, 4]}>
-          {(tags ?? []).map((tag) => (
-            <Tag
-              key={tag}
-              style={{
-                margin: 0,
-                background: '#fafafa',
-                border: '1px solid #f0f0f0',
-                color: '#595959',
-              }}
-            >
-              {tag}
-            </Tag>
-          ))}
-        </Space>
-      ),
+      render: (tags: string[] | undefined, record) => {
+        if (isTablePlaceholderRow(record)) return null
+        return (
+          <Space wrap size={[4, 4]}>
+            {(tags ?? []).map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
+          </Space>
+        )
+      },
     },
     {
       title: 'Created At',
       dataIndex: 'createdAt',
       width: 140,
-      render: (value: string) => formatCreatedAt(value),
+      render: (value: string, record) =>
+        isTablePlaceholderRow(record) ? null : formatCreatedAt(value),
     },
     {
       title: 'Actions',
       key: 'actions',
       width: 100,
-      render: () => (
-        <Space size={4}>
-          <Button
-            type="text"
-            disabled
-            icon={<EditOutlined style={{ color: '#bfbfbf' }} />}
-          />
-          <Button
-            type="text"
-            disabled
-            icon={<DeleteOutlined style={{ color: '#ffccc7' }} />}
-          />
-        </Space>
-      ),
-    },
-  ]
+      render: (_, record) => {
+        if (isTablePlaceholderRow(record)) return null
 
-  const handlePageChange = (page: number) => {
-    dispatch(postsActions.fetchRequest(page))
-  }
+        return (
+          <Space size={4}>
+            <Button
+              type="text"
+              icon={<EditOutlined style={{ color: '#595959' }} />}
+              onClick={() => {
+                setEditingId(record.id)
+                setModalOpen(true)
+              }}
+            />
+            <Button
+              type="text"
+              loading={deletingId === record.id}
+              icon={<DeleteOutlined style={{ color: '#ff7875' }} />}
+              onClick={() => confirmDelete(record.id)}
+            />
+          </Space>
+        )
+      },
+    },
+  ],
+    [confirmDelete, deletingId],
+  )
 
   return (
     <MainLayout>
@@ -176,7 +273,7 @@ function PostsPageContent() {
           <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
             Posts
           </Typography.Title>
-          <Button type="primary" icon={<PlusOutlined />} disabled>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
             New post
           </Button>
         </div>
@@ -205,13 +302,26 @@ function PostsPageContent() {
           <Button icon={<SortAscendingOutlined />} disabled />
         </div>
 
-        <Table<PostListItem>
-          columns={columns}
-          dataSource={filteredItems}
-          loading={loading}
-          pagination={false}
-          locale={{ emptyText: loading ? 'Loading…' : 'No posts' }}
-        />
+        <div
+          style={
+            skipPlaceholdersOnFirstPage
+              ? { minHeight: getPostsFirstPageMinHeight() }
+              : undefined
+          }
+        >
+          <Table<PostTableRow>
+            columns={columns}
+            dataSource={tableRows}
+            loading={loading}
+            pagination={false}
+            onRow={(record) => ({
+              className: isTablePlaceholderRow(record)
+                ? 'table-row-placeholder'
+                : undefined,
+            })}
+            locale={{ emptyText: loading ? 'Loading…' : 'No posts' }}
+          />
+        </div>
 
         <div
           style={{
@@ -227,14 +337,21 @@ function PostsPageContent() {
           </Typography.Text>
           <Pagination
             current={pagination.currentPage}
-            pageSize={pagination.perPage}
+            pageSize={pageSize}
             total={pagination.totalCount}
-            onChange={handlePageChange}
+            onChange={(nextPage) => dispatch(postsActions.fetchRequest(nextPage))}
             showSizeChanger={false}
             disabled={loading}
           />
         </div>
       </div>
+
+      <PostFormModal
+        open={modalOpen}
+        editingId={editingId}
+        page={pagination.currentPage}
+        onClose={closeModal}
+      />
     </MainLayout>
   )
 }
