@@ -254,11 +254,11 @@ export function AuthorFormModal({
           </Form.Item>
 
           <Form.Item label={t('authors.shortDescription')} name="shortDescription">
-            <Input.TextArea rows={2} />
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
           </Form.Item>
 
           <Form.Item label={t('authors.description')} name="description">
-            <Input.TextArea rows={4} />
+            <Input.TextArea autoSize={{ minRows: 4, maxRows: 8 }} />
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
