@@ -1,5 +1,5 @@
 import { Suspense, type ComponentType, type ReactNode } from 'react'
-import { Spin } from 'antd'
+import { Spin } from '@/components/ui'
 
 type LazyPageProps = {
   children: ReactNode
@@ -8,15 +8,7 @@ type LazyPageProps = {
 
 export function LazyPage({ children, fallback }: LazyPageProps) {
   return (
-    <Suspense
-      fallback={
-        fallback ?? (
-          <div className="flex min-h-screen items-center justify-center">
-            <Spin size="large" />
-          </div>
-        )
-      }
-    >
+    <Suspense fallback={fallback ?? <Spin fullPage />}>
       {children}
     </Suspense>
   )
