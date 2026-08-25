@@ -7,8 +7,21 @@ export {
   isBadRequestError,
   isValidationError,
 } from './client'
-export { clearAuthTokens, getAccessToken, getRefreshToken, hasAuthTokens, setAuthTokens } from './cookies'
+export {
+  clearAuthTokens,
+  getAccessToken,
+  getRefreshToken,
+  hasAuthTokens,
+  setAuthTokens,
+} from './cookies'
 export { loginRequest, refreshTokenRequest } from './auth'
+export { fetchPostsList } from './posts'
+export type {
+  ApiPagination,
+  FetchPostsParams,
+  PostListItem,
+  PostsListResponse,
+} from './posts.types'
 export type {
   ApiBadRequestResponse,
   ApiFieldError,

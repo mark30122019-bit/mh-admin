@@ -1,4 +1,5 @@
 import type { ISagaModule } from 'redux-dynamic-modules-saga'
+import { postsActions } from './actions'
 import { postsReducer } from './reducer'
 import { postsSaga } from './sagas'
 
@@ -13,5 +14,6 @@ export function getPostsModule(): ISagaModule<PostsModuleState> {
       posts: postsReducer,
     },
     sagas: [postsSaga],
+    initialActions: [postsActions.fetchRequest(1)],
   }
 }
