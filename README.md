@@ -118,7 +118,7 @@ src/
 
 ## Тестовые данные (из ТЗ)
 
-- Email: `admin@machineheads.ru`
+- Email: `test@test.ru`
 - Password: `khro2ij3n2730`
 
 ## Текущий статус

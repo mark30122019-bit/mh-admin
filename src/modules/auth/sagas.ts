@@ -18,6 +18,7 @@ import {
   AUTH_INIT,
   AUTH_LOGIN_REQUEST,
   AUTH_LOGOUT,
+  AUTH_SESSION_EXPIRED,
   authActions,
 } from './actions'
 import type { AuthLoginRequestAction } from './actions'
@@ -94,8 +95,15 @@ function* logoutWorker(): SagaIterator {
   yield put(push('/login'))
 }
 
+/** Провал refresh в Axios → SESSION_EXPIRED → сброс стейта + /login. */
+function* sessionExpiredWorker(): SagaIterator {
+  clearAuthTokens()
+  yield put(push('/login'))
+}
+
 export function* authSaga(): SagaIterator {
   yield takeLatest(AUTH_LOGIN_REQUEST, loginWorker)
   yield takeLeading(AUTH_INIT, restoreSessionWorker)
   yield takeLatest(AUTH_LOGOUT, logoutWorker)
+  yield takeLatest(AUTH_SESSION_EXPIRED, sessionExpiredWorker)
 }

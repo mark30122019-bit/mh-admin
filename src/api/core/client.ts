@@ -4,6 +4,7 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { refreshTokenRequest } from '../auth/auth'
+import { notifySessionExpired } from './authSession'
 import { API_BASE_URL, AUTH_ENDPOINTS } from './constants'
 import {
   clearAuthTokens,
@@ -117,6 +118,7 @@ function createApiClient(): AxiosInstance {
       } catch (refreshError) {
         processRefreshQueue(refreshError, null)
         clearAuthTokens()
+        notifySessionExpired()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

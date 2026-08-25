@@ -25,3 +25,4 @@ export type {
   UserProfile,
 } from './types'
 export { appendFormValue, appendFormNumberArray, appendFormStringArray } from './formData'
+export { setSessionExpiredHandler, notifySessionExpired } from './authSession'

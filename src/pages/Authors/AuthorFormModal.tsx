@@ -1,5 +1,5 @@
 import { UploadOutlined } from '@ant-design/icons'
-import { Upload } from 'antd'
+import { Image, Upload } from 'antd'
 import type { UploadFile } from 'antd/es/upload/interface'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -41,6 +41,8 @@ export function AuthorFormModal({
   const [form] = Form.useForm<AuthorFormValues>()
   const [avatarFile, setAvatarFile] = useState<File | undefined>()
   const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [existingAvatarUrl, setExistingAvatarUrl] = useState<string | null>(null)
+  const [removeAvatar, setRemoveAvatar] = useState(false)
   const wasSavingRef = useRef(false)
 
   const detail = useSelector((state: AuthorsModuleState) =>
@@ -73,6 +75,8 @@ export function AuthorFormModal({
     form.resetFields()
     setAvatarFile(undefined)
     setFileList([])
+    setExistingAvatarUrl(null)
+    setRemoveAvatar(false)
   }, [dispatch, editingId, form, open])
 
   useEffect(() => {
@@ -87,6 +91,8 @@ export function AuthorFormModal({
     })
     setAvatarFile(undefined)
     setFileList([])
+    setExistingAvatarUrl(detail.avatar?.url ?? null)
+    setRemoveAvatar(false)
   }, [detail, editingId, form, open])
 
   useEffect(() => {
@@ -97,6 +103,15 @@ export function AuthorFormModal({
     wasSavingRef.current = saving
   }, [editingId, onClose, saveError, saving, t])
 
+  const clearAvatar = () => {
+    setAvatarFile(undefined)
+    setFileList([])
+    if (existingAvatarUrl) {
+      setRemoveAvatar(true)
+      setExistingAvatarUrl(null)
+    }
+  }
+
   const handleSubmit = (values: AuthorFormValues) => {
     const payload: AuthorFormPayload = {
       name: values.name,
@@ -105,10 +120,17 @@ export function AuthorFormModal({
       shortDescription: values.shortDescription,
       description: values.description,
       avatar: avatarFile,
+      removeAvatar: removeAvatar && !avatarFile,
     }
 
     dispatch(authorsActions.saveRequest(payload, editingId ?? undefined))
   }
+
+  const previewUrl = avatarFile
+    ? undefined
+    : existingAvatarUrl && !removeAvatar
+      ? existingAvatarUrl
+      : null
 
   return (
     <Modal
@@ -157,18 +179,50 @@ export function AuthorFormModal({
           <Upload
             beforeUpload={(file) => {
               setAvatarFile(file)
-              setFileList([file as UploadFile])
+              setRemoveAvatar(false)
+              setExistingAvatarUrl(null)
+              setFileList([
+                {
+                  uid: `-avatar-${Date.now()}`,
+                  name: file.name,
+                  status: 'done',
+                  originFileObj: file,
+                },
+              ])
               return false
             }}
             onRemove={() => {
-              setAvatarFile(undefined)
-              setFileList([])
+              clearAvatar()
+              return true
             }}
             fileList={fileList}
             maxCount={1}
+            listType="picture"
+            showUploadList={{ showPreviewIcon: false }}
           >
             <Button icon={<UploadOutlined />}>{t('posts.selectFile')}</Button>
           </Upload>
+
+          {previewUrl ? (
+            <div style={{ marginTop: 12 }}>
+              <Image
+                src={previewUrl}
+                alt="Author avatar"
+                width={96}
+                style={{ borderRadius: 8, objectFit: 'cover' }}
+              />
+              <div style={{ marginTop: 8 }}>
+                <Button
+                  type="link"
+                  danger
+                  onClick={clearAvatar}
+                  style={{ padding: 0 }}
+                >
+                  {t('authors.removeAvatar')}
+                </Button>
+              </div>
+            </div>
+          ) : null}
         </Form.Item>
 
         <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>

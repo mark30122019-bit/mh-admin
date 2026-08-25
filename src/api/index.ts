@@ -15,6 +15,8 @@ export {
   setAuthTokens,
   parseApiError,
   mapFieldErrorsToFormFields,
+  setSessionExpiredHandler,
+  notifySessionExpired,
 } from './core'
 export type { ParsedApiError } from './core'
 export type {

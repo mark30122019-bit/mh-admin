@@ -68,6 +68,7 @@ export type TranslationDict = {
     shortDescription: string
     description: string
     avatar: string
+    removeAvatar: string
     noAuthors: string
     count: string
     deleteConfirmTitle: string
@@ -173,6 +174,7 @@ export const ru: TranslationDict = {
     shortDescription: 'Краткое описание',
     description: 'Описание',
     avatar: 'Аватар',
+    removeAvatar: 'Удалить аватар',
     noAuthors: 'Нет авторов',
     count: '{{count}} авторов',
     deleteConfirmTitle: 'Удалить этого автора?',
@@ -278,6 +280,7 @@ export const en: TranslationDict = {
     shortDescription: 'Short description',
     description: 'Description',
     avatar: 'Avatar',
+    removeAvatar: 'Remove avatar',
     noAuthors: 'No authors',
     count: '{{count}} authors',
     deleteConfirmTitle: 'Delete this author?',
