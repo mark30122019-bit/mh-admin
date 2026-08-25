@@ -3,6 +3,9 @@ export type TablePlaceholderRow = {
   __placeholder: true
 }
 
+/** Ниже порога — паддинг пустыми до 5; от порога — высота по факту, без пустых. */
+export const TABLE_FILL_MIN_ROWS = 5
+
 export function isTablePlaceholderRow(
   record: object,
 ): record is TablePlaceholderRow {
@@ -12,16 +15,42 @@ export function isTablePlaceholderRow(
   )
 }
 
-/** Дополняет страницу таблицы пустыми строками до pageSize — высота не сжимается. */
+/** Дополняет страницу таблицы пустыми строками до `targetCount`. */
 export function padTablePage<T extends object>(
   items: T[],
-  pageSize: number,
+  targetCount: number,
 ): Array<T | TablePlaceholderRow> {
-  if (items.length >= pageSize) return items
+  if (items.length >= targetCount) return items
 
   const padded: Array<T | TablePlaceholderRow> = [...items]
-  for (let i = items.length; i < pageSize; i += 1) {
+  for (let i = items.length; i < targetCount; i += 1) {
     padded.push({ id: `__placeholder-${i}`, __placeholder: true })
   }
   return padded
+}
+
+export type TablePageLayout<T extends object> = {
+  rows: Array<T | TablePlaceholderRow>
+  /** Делитель для `--table-rows` (равномерная высота). */
+  fillRowCount: number
+}
+
+/**
+ * ≥ TABLE_FILL_MIN_ROWS — только реальные строки, высота = count.
+ * < TABLE_FILL_MIN_ROWS — пустые до 5, высота на 5.
+ */
+export function buildTablePageLayout<T extends object>(
+  items: T[],
+): TablePageLayout<T> {
+  if (items.length >= TABLE_FILL_MIN_ROWS) {
+    return {
+      rows: items,
+      fillRowCount: Math.max(1, items.length),
+    }
+  }
+
+  return {
+    rows: padTablePage(items, TABLE_FILL_MIN_ROWS),
+    fillRowCount: TABLE_FILL_MIN_ROWS,
+  }
 }

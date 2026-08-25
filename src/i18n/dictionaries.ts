@@ -31,8 +31,6 @@ export type TranslationDict = {
     title: string
     newPost: string
     editPost: string
-    searchPlaceholder: string
-    allAuthors: string
     preview: string
     postTitle: string
     author: string
@@ -137,8 +135,6 @@ export const ru: TranslationDict = {
     title: 'Посты',
     newPost: 'Новый пост',
     editPost: 'Редактировать пост',
-    searchPlaceholder: 'Поиск по заголовку',
-    allAuthors: 'Все авторы',
     preview: 'Превью',
     postTitle: 'Заголовок',
     author: 'Автор',
@@ -243,8 +239,6 @@ export const en: TranslationDict = {
     title: 'Posts',
     newPost: 'New post',
     editPost: 'Edit post',
-    searchPlaceholder: 'Search by title',
-    allAuthors: 'All authors',
     preview: 'Preview',
     postTitle: 'Title',
     author: 'Author',

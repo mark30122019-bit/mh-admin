@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorListItem } from '@/api'
-import { AUTHORS_TABLE_ROW_HEIGHT_PX, LIST_PAGE_SIZE } from '@/api'
+import { LIST_PAGE_SIZE } from '@/api'
 import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
@@ -28,10 +28,14 @@ import {
   selectAuthorsLoading,
 } from '@/modules/authors/selectors'
 import {
+  buildTablePageLayout,
   isTablePlaceholderRow,
-  padTablePage,
   type TablePlaceholderRow,
 } from '@/utils/padTablePage'
+import {
+  AUTHORS_TABLE_COLS,
+  tableFillStyle,
+} from '@/utils/tableColumns'
 import { AuthorFormModal } from './AuthorFormModal'
 
 type AuthorTableRow = AuthorListItem | TablePlaceholderRow
@@ -73,6 +77,9 @@ function AuthorAvatar({ author }: { author: AuthorListItem }) {
         color: '#1677ff',
         fontWeight: 600,
         fontSize: 13,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       {initials}
@@ -122,16 +129,12 @@ function AuthorsPageContent() {
     prevDeletingIdRef.current = deletingId
   }, [deletingId, t])
 
-  const pageItems = useMemo(() => {
+  const { rows: pageItems, fillRowCount } = useMemo(() => {
     const start = (page - 1) * pageSize
-    return padTablePage(items.slice(start, start + pageSize), pageSize)
+    return buildTablePageLayout(items.slice(start, start + pageSize))
   }, [items, page, pageSize])
 
-  const tableScroll = useTableScrollY(tableAreaRef, {
-    contentRows: loading ? pageSize : pageItems.length,
-    rowHeight: AUTHORS_TABLE_ROW_HEIGHT_PX,
-    observeKey: loading,
-  })
+  const tableScroll = useTableScrollY(tableAreaRef, { observeKey: loading })
 
   const confirmDelete = useCallback(
     (id: number) => {
@@ -155,14 +158,15 @@ function AuthorsPageContent() {
       {
         title: 'ID',
         dataIndex: 'id',
-        width: 64,
+        width: AUTHORS_TABLE_COLS.id,
+        ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
         title: t('authors.avatar'),
         key: 'avatar',
-        width: 64,
+        width: AUTHORS_TABLE_COLS.avatar,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           return <AuthorAvatar author={record} />
@@ -171,6 +175,7 @@ function AuthorsPageContent() {
       {
         title: t('authors.name'),
         dataIndex: 'name',
+        width: AUTHORS_TABLE_COLS.name,
         ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
@@ -178,6 +183,7 @@ function AuthorsPageContent() {
       {
         title: t('authors.lastName'),
         dataIndex: 'lastName',
+        width: AUTHORS_TABLE_COLS.lastName,
         ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
@@ -185,7 +191,7 @@ function AuthorsPageContent() {
       {
         title: t('authors.secondName'),
         dataIndex: 'secondName',
-        width: 120,
+        width: AUTHORS_TABLE_COLS.secondName,
         ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
@@ -193,19 +199,20 @@ function AuthorsPageContent() {
       {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
-        width: 120,
+        width: AUTHORS_TABLE_COLS.created,
+        ellipsis: true,
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
       },
       {
         title: t('common.actions'),
         key: 'actions',
-        width: 96,
+        width: AUTHORS_TABLE_COLS.actions,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
           return (
-            <Space size={4}>
+            <Space size="middle">
               <Button
                 type="text"
                 icon={<EditOutlined style={{ color: '#595959' }} />}
@@ -252,18 +259,18 @@ function AuthorsPageContent() {
             <TableSkeleton
               columns={getTableSkeletonPreset('authors')}
               rows={pageSize}
-              rowHeight={AUTHORS_TABLE_ROW_HEIGHT_PX}
               density="default"
               bordered={false}
+              fill
             />
           ) : (
             <Table<AuthorTableRow>
-              className="admin-data-table"
+              className="admin-table-fill-rows"
+              style={tableFillStyle(tableScroll.y, fillRowCount)}
               columns={columns}
               dataSource={pageItems}
               pagination={false}
-              tableLayout="fixed"
-              scroll={tableScroll.y != null ? { y: tableScroll.y } : undefined}
+              scroll={{ y: tableScroll.y }}
               onRow={(record) => ({
                 className: isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'

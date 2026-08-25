@@ -4,7 +4,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { TagListItem } from '@/api'
-import { LIST_PAGE_SIZE, TAGS_TABLE_ROW_HEIGHT_PX } from '@/api'
+import { LIST_PAGE_SIZE } from '@/api'
 import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
@@ -28,10 +28,14 @@ import {
   selectTagsLoading,
 } from '@/modules/tags/selectors'
 import {
+  buildTablePageLayout,
   isTablePlaceholderRow,
-  padTablePage,
   type TablePlaceholderRow,
 } from '@/utils/padTablePage'
+import {
+  TAGS_TABLE_COLS,
+  tableFillStyle,
+} from '@/utils/tableColumns'
 import { TagFormModal } from './TagFormModal'
 
 type TagTableRow = TagListItem | TablePlaceholderRow
@@ -82,16 +86,12 @@ function TagsPageContent() {
     prevDeletingIdRef.current = deletingId
   }, [deletingId, t])
 
-  const pageItems = useMemo(() => {
+  const { rows: pageItems, fillRowCount } = useMemo(() => {
     const start = (page - 1) * pageSize
-    return padTablePage(items.slice(start, start + pageSize), pageSize)
+    return buildTablePageLayout(items.slice(start, start + pageSize))
   }, [items, page, pageSize])
 
-  const tableScroll = useTableScrollY(tableAreaRef, {
-    contentRows: loading ? pageSize : pageItems.length,
-    rowHeight: TAGS_TABLE_ROW_HEIGHT_PX,
-    observeKey: loading,
-  })
+  const tableScroll = useTableScrollY(tableAreaRef, { observeKey: loading })
 
   const confirmDelete = useCallback(
     (id: number) => {
@@ -115,13 +115,15 @@ function TagsPageContent() {
       {
         title: 'ID',
         dataIndex: 'id',
-        width: 64,
+        width: TAGS_TABLE_COLS.id,
+        ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
       {
         title: t('tags.name'),
         dataIndex: 'name',
+        width: TAGS_TABLE_COLS.name,
         ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
@@ -129,7 +131,7 @@ function TagsPageContent() {
       {
         title: t('tags.code'),
         dataIndex: 'code',
-        width: 140,
+        width: TAGS_TABLE_COLS.code,
         ellipsis: true,
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
@@ -137,26 +139,28 @@ function TagsPageContent() {
       {
         title: t('tags.priority'),
         dataIndex: 'sort',
-        width: 96,
+        width: TAGS_TABLE_COLS.priority,
+        ellipsis: true,
         render: (value: number | null | undefined, record) =>
           isTablePlaceholderRow(record) ? null : (value ?? '—'),
       },
       {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
-        width: 120,
+        width: TAGS_TABLE_COLS.created,
+        ellipsis: true,
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
       },
       {
         title: t('common.actions'),
         key: 'actions',
-        width: 96,
+        width: TAGS_TABLE_COLS.actions,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
           return (
-            <Space size={4}>
+            <Space size="middle">
               <Button
                 type="text"
                 icon={<EditOutlined style={{ color: '#595959' }} />}
@@ -203,18 +207,18 @@ function TagsPageContent() {
             <TableSkeleton
               columns={getTableSkeletonPreset('tags')}
               rows={pageSize}
-              rowHeight={TAGS_TABLE_ROW_HEIGHT_PX}
               density="default"
               bordered={false}
+              fill
             />
           ) : (
             <Table<TagTableRow>
-              className="admin-data-table"
+              className="admin-table-fill-rows"
+              style={tableFillStyle(tableScroll.y, fillRowCount)}
               columns={columns}
               dataSource={pageItems}
               pagination={false}
-              tableLayout="fixed"
-              scroll={tableScroll.y != null ? { y: tableScroll.y } : undefined}
+              scroll={{ y: tableScroll.y }}
               onRow={(record) => ({
                 className: isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'

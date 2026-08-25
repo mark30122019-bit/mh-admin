@@ -12,7 +12,7 @@ type AdminPageFrameProps = {
 }
 
 /**
- * Контент админки: центрируется, max-width на 2K/4K,
+ * Контент админки: max-width 1440px по центру (не растягивается на ultrawide),
  * адаптивные внутренние отступы (tablet → desktop → wide).
  */
 export function AdminPageFrame({
@@ -24,8 +24,8 @@ export function AdminPageFrame({
     <div
       className={
         fill
-          ? 'mx-auto flex min-h-0 w-full max-w-screen-2xl flex-1 flex-col'
-          : 'mx-auto w-full max-w-screen-2xl'
+          ? 'mx-auto flex min-h-0 w-full max-w-[1440px] flex-1 flex-col'
+          : 'mx-auto w-full max-w-[1440px]'
       }
     >
       <div

@@ -2,21 +2,18 @@ import {
   DeleteOutlined,
   EditOutlined,
   PlusOutlined,
-  SortAscendingOutlined,
 } from '@ant-design/icons'
 import { Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { LIST_PAGE_SIZE, TABLE_ROW_HEIGHT_PX } from '@/api'
+import { LIST_PAGE_SIZE } from '@/api'
 import type { PostListItem } from '@/api'
 import { AdminPageFrame, AdminTableShell } from '@/components/Layout'
 import {
   Button,
-  Input,
   Modal,
   Pagination,
-  Select,
   Space,
   Table,
   Tag,
@@ -43,10 +40,14 @@ import {
   resolvePostTagLabels,
 } from '@/utils/orphanLabels'
 import {
+  buildTablePageLayout,
   isTablePlaceholderRow,
-  padTablePage,
   type TablePlaceholderRow,
 } from '@/utils/padTablePage'
+import {
+  POSTS_TABLE_COLS,
+  tableFillStyle,
+} from '@/utils/tableColumns'
 import { PostFormModal } from './PostFormModal'
 
 type PostTableRow = PostListItem | TablePlaceholderRow
@@ -84,8 +85,6 @@ function PostsPageContent() {
     selectPostsTagOptions(state),
   )
 
-  const [search, setSearch] = useState('')
-  const [authorFilter, setAuthorFilter] = useState<string>('all')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const prevDeletingIdRef = useRef<number | null>(null)
@@ -112,46 +111,14 @@ function PostsPageContent() {
     prevDeletingIdRef.current = deletingId
   }, [deletingId, t])
 
-  const authorOptions = useMemo(() => {
-    const uniqueAuthors = Array.from(
-      new Set(
-        items
-          .map((item) => resolvePostAuthorLabel(item, authorCatalog, lang).label)
-          .filter(Boolean),
-      ),
-    ).sort()
-
-    return [
-      { value: 'all', label: t('posts.allAuthors') },
-      ...uniqueAuthors.map((author) => ({ value: author, label: author })),
-    ]
-  }, [authorCatalog, items, lang, t])
-
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchesSearch = item.title
-        .toLowerCase()
-        .includes(search.trim().toLowerCase())
-      const authorLabel = resolvePostAuthorLabel(item, authorCatalog, lang).label
-      const matchesAuthor =
-        authorFilter === 'all' || authorLabel === authorFilter
-      return matchesSearch && matchesAuthor
-    })
-  }, [authorCatalog, authorFilter, items, lang, search])
-
   const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
-  const isFirstPage = pagination.currentPage === 1
-  const skipPlaceholdersOnFirstPage =
-    isFirstPage && filteredItems.length < pageSize
 
-  const tableRows = useMemo(() => {
-    if (skipPlaceholdersOnFirstPage) return filteredItems
-    return padTablePage(filteredItems, pageSize)
-  }, [filteredItems, pageSize, skipPlaceholdersOnFirstPage])
+  const { rows: tableRows, fillRowCount } = useMemo(
+    () => buildTablePageLayout(items),
+    [items],
+  )
 
   const tableScroll = useTableScrollY(tableAreaRef, {
-    contentRows: loading ? pageSize : tableRows.length,
-    rowHeight: TABLE_ROW_HEIGHT_PX,
     headerRowHeight: 39,
     observeKey: loading,
   })
@@ -189,14 +156,14 @@ function PostsPageContent() {
       {
         title: 'ID',
         dataIndex: 'id',
-        width: 64,
+        width: POSTS_TABLE_COLS.id,
+        ellipsis: true,
         render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
       },
       {
         title: t('posts.preview'),
         dataIndex: 'previewPicture',
-        width: 92,
-        onHeaderCell: () => ({ style: { whiteSpace: 'nowrap' } }),
+        width: POSTS_TABLE_COLS.preview,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const url = record.previewPicture?.url
@@ -230,12 +197,14 @@ function PostsPageContent() {
       {
         title: t('posts.postTitle'),
         dataIndex: 'title',
+        width: POSTS_TABLE_COLS.title,
         ellipsis: true,
         render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
       },
       {
         title: t('posts.author'),
         dataIndex: 'authorName',
+        width: POSTS_TABLE_COLS.author,
         ellipsis: true,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
@@ -245,7 +214,7 @@ function PostsPageContent() {
             lang,
           )
           return (
-            <span style={orphan ? { color: '#cf1322' } : undefined}>
+            <span style={orphan ? { color: '#cf1322' } : undefined} title={label}>
               {label}
             </span>
           )
@@ -254,7 +223,9 @@ function PostsPageContent() {
       {
         title: t('posts.tags'),
         dataIndex: 'tagNames',
-        width: 160,
+        width: POSTS_TABLE_COLS.tags,
+        ellipsis: true,
+        onCell: () => ({ className: 'admin-table-cell-wrap' }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const resolvedTags = resolvePostTagLabels(record, tagCatalog, lang)
@@ -264,7 +235,12 @@ function PostsPageContent() {
           return (
             <Space wrap size={[4, 4]}>
               {resolvedTags.map((tag) => (
-                <Tag key={tag.key} color={tag.orphan ? 'error' : undefined}>
+                <Tag
+                  key={tag.key}
+                  color={tag.orphan ? 'error' : undefined}
+                  title={tag.label}
+                  style={{ maxWidth: 140 }}
+                >
                   {tag.label}
                 </Tag>
               ))}
@@ -275,7 +251,8 @@ function PostsPageContent() {
       {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
-        width: 120,
+        width: POSTS_TABLE_COLS.created,
+        ellipsis: true,
         render: (value: string, record) =>
           isTablePlaceholderRow(record)
             ? null
@@ -284,12 +261,12 @@ function PostsPageContent() {
       {
         title: t('common.actions'),
         key: 'actions',
-        width: 96,
+        width: POSTS_TABLE_COLS.actions,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
           return (
-            <Space size={4}>
+            <Space size="middle">
               <Button
                 type="text"
                 icon={<EditOutlined style={{ color: '#595959' }} />}
@@ -316,36 +293,13 @@ function PostsPageContent() {
     <>
       <AdminPageFrame fill>
         <div className="mb-4 shrink-0">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <Typography.Title level={3} style={{ margin: 0, fontWeight: 700 }}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Typography.Title level={2} style={{ margin: 0, fontWeight: 700 }}>
               {t('posts.title')}
             </Typography.Title>
             <Button type="primary" icon={<PlusOutlined />} onClick={openCreateModal}>
               {t('posts.newPost')}
             </Button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Input.Search
-              placeholder={t('posts.searchPlaceholder')}
-              allowClear
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="w-[260px] shrink-0"
-              style={{ width: 260 }}
-            />
-            <Select
-              value={authorFilter}
-              options={authorOptions}
-              onChange={setAuthorFilter}
-              className="w-[180px] shrink-0"
-              style={{ width: 180 }}
-            />
-            <Button
-              icon={<SortAscendingOutlined />}
-              disabled
-              className="shrink-0"
-            />
           </div>
         </div>
 
@@ -354,19 +308,19 @@ function PostsPageContent() {
             <TableSkeleton
               columns={getTableSkeletonPreset('posts')}
               rows={pageSize}
-              rowHeight={TABLE_ROW_HEIGHT_PX}
               density="small"
               bordered={false}
+              fill
             />
           ) : (
             <Table<PostTableRow>
-              className="posts-table admin-data-table"
+              className="posts-table admin-table-fill-rows"
+              style={tableFillStyle(tableScroll.y, fillRowCount)}
               columns={columns}
               dataSource={tableRows}
               pagination={false}
               size="small"
-              tableLayout="fixed"
-              scroll={tableScroll.y != null ? { y: tableScroll.y } : undefined}
+              scroll={{ y: tableScroll.y }}
               onRow={(record) => ({
                 className: isTablePlaceholderRow(record)
                   ? 'table-row-placeholder'

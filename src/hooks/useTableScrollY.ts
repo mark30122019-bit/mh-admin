@@ -1,10 +1,6 @@
 import { useLayoutEffect, useState, type RefObject } from 'react'
 
 type UseTableScrollYOptions = {
-  /** Число строк на экране (включая placeholder). */
-  contentRows: number
-  /** Оценка высоты одной строки тела таблицы. */
-  rowHeight: number
   /** Fallback высоты thead, пока таблица не смонтирована. */
   headerRowHeight?: number
   minHeight?: number
@@ -14,28 +10,19 @@ type UseTableScrollYOptions = {
 
 export type TableScrollYState =
   | { ready: false }
-  | {
-      ready: true
-      /**
-       * Высота тела для Ant Design scroll.y.
-       * undefined — контент влазит, скролл не нужен (без пустого низа).
-       */
-      y: number | undefined
-    }
+  | { ready: true; y: number }
 
 /**
- * Скролл тела таблицы только если строки не влазят в доступную высоту.
- * Иначе y не задаём — таблица по высоте контента, без лишней пустоты.
+ * Высота тела таблицы = доступная высота AdminTableShell минус thead.
+ * Всегда заполняет область (scroll.y), чтобы отступы/высота карточки были стабильны.
  */
 export function useTableScrollY(
   containerRef: RefObject<HTMLElement | null>,
   {
-    contentRows,
-    rowHeight,
     headerRowHeight = 47,
     minHeight = 120,
     observeKey,
-  }: UseTableScrollYOptions,
+  }: UseTableScrollYOptions = {},
 ): TableScrollYState {
   const [state, setState] = useState<TableScrollYState>({ ready: false })
 
@@ -45,41 +32,32 @@ export function useTableScrollY(
 
     const readHeaderHeight = () => {
       const header = node.querySelector(
-        '.ant-table-header, .ant-table-thead',
+        '.ant-table-header',
       ) as HTMLElement | null
-      if (header && header.offsetHeight > 0) return header.offsetHeight
+      if (header && header.getBoundingClientRect().height > 0) {
+        return Math.ceil(header.getBoundingClientRect().height)
+      }
+      const thead = node.querySelector('.ant-table-thead') as HTMLElement | null
+      if (thead && thead.getBoundingClientRect().height > 0) {
+        return Math.ceil(thead.getBoundingClientRect().height)
+      }
       return headerRowHeight
     }
 
     const update = () => {
-      const headerH = readHeaderHeight()
-      // 1px — нижняя граница контейнера Ant Table, чтобы последний ряд не клипался
-  const availableBody = Math.max(
+      // Только чистая высота тела: shell − шапка (без flex-раздувания body)
+      const available = Math.max(
         minHeight,
-        Math.floor(node.clientHeight - headerH),
+        Math.floor(node.clientHeight - readHeaderHeight()),
       )
-      const contentBody = Math.max(0, contentRows) * rowHeight
-
-      if (contentBody > availableBody) {
-        // +1 компенсирует border-collapse / subpixel, чтобы последний ряд не клипался
-        setState({ ready: true, y: availableBody + 1 })
-      } else {
-        setState({ ready: true, y: undefined })
-      }
+      setState({ ready: true, y: available })
     }
 
     update()
     const observer = new ResizeObserver(update)
     observer.observe(node)
     return () => observer.disconnect()
-  }, [
-    containerRef,
-    contentRows,
-    rowHeight,
-    headerRowHeight,
-    minHeight,
-    observeKey,
-  ])
+  }, [containerRef, headerRowHeight, minHeight, observeKey])
 
   return state
 }

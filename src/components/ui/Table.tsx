@@ -5,16 +5,32 @@ export type { TableProps }
 
 type AppTableType = typeof AntTable
 
+function mergeClassName(
+  ...parts: Array<string | undefined>
+): string | undefined {
+  const value = parts.filter(Boolean).join(' ').trim()
+  return value || undefined
+}
+
 /**
  * Таблица списков (посты, авторы, теги).
  * Пагинация по умолчанию отключена — управляется снаружи.
- * Фиксированную высоту страницы обеспечивают placeholder-строки (padTablePage).
+ * tableLayout=fixed + admin-data-table: длинный текст не раздувает колонки.
  */
 export const Table = Object.assign(
   function Table<RecordType extends object = Record<string, unknown>>(
     props: TableProps<RecordType>,
   ) {
-    return <AntTable<RecordType> rowKey="id" pagination={false} {...props} />
+    const { className, tableLayout, ...rest } = props
+    return (
+      <AntTable<RecordType>
+        rowKey="id"
+        pagination={false}
+        tableLayout={tableLayout ?? 'fixed'}
+        className={mergeClassName('admin-data-table', className)}
+        {...rest}
+      />
+    )
   },
   {
     Summary: AntTable.Summary,
