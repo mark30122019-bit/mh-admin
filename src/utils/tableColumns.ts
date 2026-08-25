@@ -1,36 +1,36 @@
 import type { CSSProperties } from 'react'
 
 /**
- * Фиксированные ширины колонок админ-таблиц (table-layout: fixed).
- * Задают пропорции и потолок для ellipsis — длинный текст не раздувает соседние колонки.
+ * Компактные ширины колонок: сумма умещается в ~1024px при свёрнутом sider (64px)
+ * и узких внешних отступах — без горизонтального скролла.
  */
 export const POSTS_TABLE_COLS = {
-  id: 64,
-  preview: 92,
-  title: 280,
-  author: 200,
-  tags: 320,
-  created: 168,
-  actions: 96,
+  id: 56,
+  preview: 72,
+  title: 180,
+  author: 140,
+  tags: 168,
+  created: 112,
+  actions: 88,
 } as const
 
 export const AUTHORS_TABLE_COLS = {
-  id: 64,
-  avatar: 96,
-  name: 180,
-  lastName: 180,
-  secondName: 140,
-  created: 168,
-  actions: 96,
+  id: 56,
+  avatar: 72,
+  name: 120,
+  lastName: 120,
+  secondName: 100,
+  created: 112,
+  actions: 88,
 } as const
 
 export const TAGS_TABLE_COLS = {
-  id: 64,
-  name: 320,
-  code: 220,
-  priority: 96,
-  created: 168,
-  actions: 96,
+  id: 56,
+  name: 200,
+  code: 148,
+  priority: 80,
+  created: 112,
+  actions: 88,
 } as const
 
 /**

@@ -140,6 +140,16 @@ body,
   word-break: break-all;
 }
 
+/* Колонка действий: без усечения и «…» у кнопок / заголовка */
+.admin-data-table .ant-table-thead > tr > th.admin-table-cell-actions,
+.admin-data-table .ant-table-tbody > tr > td.admin-table-cell-actions {
+  overflow: visible !important;
+  max-width: none;
+  text-overflow: clip;
+  white-space: nowrap;
+  word-break: normal;
+}
+
 .admin-data-table .ant-table-cell-ellipsis,
 .admin-data-table .ant-table-cell-ellipsis .ant-table-cell-content {
   overflow: hidden;

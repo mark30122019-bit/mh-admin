@@ -1,11 +1,14 @@
 import { FileTextOutlined, TagsOutlined, TeamOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
 import { useTranslation } from '@/hooks/useTranslation'
 
 const { Sider } = Layout
+
+/** Ниже xl (1200px) — только иконки, больше места под таблицы. */
+const COLLAPSE_MQ = '(max-width: 1199px)'
 
 const PREFETCH_BY_PATH: Record<string, () => Promise<unknown>> = {
   '/posts': () => import('@/pages/Posts'),
@@ -22,6 +25,17 @@ export function Sidebar() {
   const history = useHistory()
   const location = useLocation()
   const { t } = useTranslation()
+  const [collapsed, setCollapsed] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(COLLAPSE_MQ).matches : false,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia(COLLAPSE_MQ)
+    const sync = () => setCollapsed(media.matches)
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
 
   const menuItems: MenuProps['items'] = useMemo(
     () => [
@@ -61,9 +75,10 @@ export function Sidebar() {
 
   return (
     <Sider
-      breakpoint="lg"
+      collapsed={collapsed}
       collapsedWidth={64}
-      width={240}
+      width={220}
+      trigger={null}
       style={{
         background: '#001529',
         height: '100vh',
@@ -75,26 +90,25 @@ export function Sidebar() {
       }}
     >
       <div
-        style={{
-          height: 64,
-          padding: '0 24px',
-          color: '#fff',
-          fontWeight: 600,
-          fontSize: 16,
-          display: 'flex',
-          alignItems: 'center',
-          letterSpacing: '-0.02em',
-        }}
+        className={
+          collapsed
+            ? 'flex h-16 items-center justify-center text-[15px] font-semibold tracking-tight text-white'
+            : 'flex h-16 items-center px-5 text-base font-semibold tracking-tight text-white'
+        }
       >
-        machineheads
+        {collapsed ? 'mh' : 'machineheads'}
       </div>
       <Menu
         theme="dark"
         mode="inline"
+        inlineCollapsed={collapsed}
         selectedKeys={[selectedKey]}
         items={menuItems}
         onClick={({ key }) => history.push(key)}
-        style={{ padding: '8px 12px', background: 'transparent' }}
+        style={{
+          padding: collapsed ? '8px 0' : '8px 12px',
+          background: 'transparent',
+        }}
       />
     </Sider>
   )

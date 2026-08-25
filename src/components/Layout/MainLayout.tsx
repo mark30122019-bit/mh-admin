@@ -73,7 +73,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </>
           }
         />
-        <Content className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f5f5f5] px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-5 lg:px-8 lg:py-6 xl:px-10 xl:py-8">
+        <Content className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f5f5f5] px-3 py-3 sm:px-3 sm:py-3 md:px-4 md:py-4 xl:px-8 xl:py-6 2xl:px-10 2xl:py-8">
           {children}
         </Content>
       </Layout>

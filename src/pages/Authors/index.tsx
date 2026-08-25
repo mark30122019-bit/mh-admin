@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Avatar, Image, Typography } from 'antd'
+import { Avatar, Image, Tooltip, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -181,25 +181,37 @@ function AuthorsPageContent() {
         title: t('authors.name'),
         dataIndex: 'name',
         width: AUTHORS_TABLE_COLS.name,
-        ellipsis: true,
-        render: (value, record) =>
-          isTablePlaceholderRow(record) ? null : value,
+        ellipsis: { showTitle: false },
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tooltip placement="topLeft" title={value}>
+              <span>{value}</span>
+            </Tooltip>
+          ),
       },
       {
         title: t('authors.lastName'),
         dataIndex: 'lastName',
         width: AUTHORS_TABLE_COLS.lastName,
-        ellipsis: true,
-        render: (value, record) =>
-          isTablePlaceholderRow(record) ? null : value,
+        ellipsis: { showTitle: false },
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tooltip placement="topLeft" title={value}>
+              <span>{value}</span>
+            </Tooltip>
+          ),
       },
       {
         title: t('authors.secondName'),
         dataIndex: 'secondName',
         width: AUTHORS_TABLE_COLS.secondName,
-        ellipsis: true,
-        render: (value, record) =>
-          isTablePlaceholderRow(record) ? null : value,
+        ellipsis: { showTitle: false },
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tooltip placement="topLeft" title={value || undefined}>
+              <span>{value}</span>
+            </Tooltip>
+          ),
       },
       {
         title: t('common.createdAt'),
@@ -213,6 +225,8 @@ function AuthorsPageContent() {
         title: t('common.actions'),
         key: 'actions',
         width: AUTHORS_TABLE_COLS.actions,
+        className: 'admin-table-cell-actions',
+        onCell: () => ({ className: 'admin-table-cell-actions' }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 

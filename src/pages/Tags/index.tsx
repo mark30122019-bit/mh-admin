@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Typography } from 'antd'
+import { Tooltip, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -125,18 +125,26 @@ function TagsPageContent() {
         title: t('tags.name'),
         dataIndex: 'name',
         width: TAGS_TABLE_COLS.name,
-        className: 'admin-table-cell-wrap break-all',
-        onCell: () => ({ className: 'admin-table-cell-wrap break-all' }),
-        render: (value, record) =>
-          isTablePlaceholderRow(record) ? null : value,
+        ellipsis: { showTitle: false },
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tooltip placement="topLeft" title={value}>
+              <span>{value}</span>
+            </Tooltip>
+          ),
       },
       {
         title: t('tags.code'),
         dataIndex: 'code',
         width: TAGS_TABLE_COLS.code,
+        ellipsis: { showTitle: false },
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : (
-            <Tag color="default">{value}</Tag>
+            <Tooltip placement="topLeft" title={value}>
+              <Tag color="default" className="!m-0 max-w-full truncate">
+                {value}
+              </Tag>
+            </Tooltip>
           ),
       },
       {
@@ -159,6 +167,8 @@ function TagsPageContent() {
         title: t('common.actions'),
         key: 'actions',
         width: TAGS_TABLE_COLS.actions,
+        className: 'admin-table-cell-actions',
+        onCell: () => ({ className: 'admin-table-cell-actions' }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 

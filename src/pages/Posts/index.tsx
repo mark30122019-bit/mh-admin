@@ -3,7 +3,7 @@ import {
   EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
-import { Image, Typography } from 'antd'
+import { Image, Tooltip, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -178,8 +178,8 @@ function PostsPageContent() {
             <Image
               src={url}
               alt={record.title}
-              width={48}
-              height={34}
+              width={40}
+              height={28}
               style={{
                 objectFit: 'cover',
                 borderRadius: 4,
@@ -198,14 +198,19 @@ function PostsPageContent() {
         title: t('posts.postTitle'),
         dataIndex: 'title',
         width: POSTS_TABLE_COLS.title,
-        ellipsis: true,
-        render: (value, record) => (isTablePlaceholderRow(record) ? null : value),
+        ellipsis: { showTitle: false },
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tooltip placement="topLeft" title={value}>
+              <span>{value}</span>
+            </Tooltip>
+          ),
       },
       {
         title: t('posts.author'),
         dataIndex: 'authorName',
         width: POSTS_TABLE_COLS.author,
-        ellipsis: true,
+        ellipsis: { showTitle: false },
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const { label, orphan } = resolvePostAuthorLabel(
@@ -214,9 +219,11 @@ function PostsPageContent() {
             lang,
           )
           return (
-            <span style={orphan ? { color: '#cf1322' } : undefined} title={label}>
-              {label}
-            </span>
+            <Tooltip placement="topLeft" title={label}>
+              <span style={orphan ? { color: '#cf1322' } : undefined}>
+                {label}
+              </span>
+            </Tooltip>
           )
         },
       },
@@ -225,7 +232,6 @@ function PostsPageContent() {
         dataIndex: 'tagNames',
         width: POSTS_TABLE_COLS.tags,
         ellipsis: true,
-        onCell: () => ({ className: 'admin-table-cell-wrap' }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
           const resolvedTags = resolvePostTagLabels(record, tagCatalog, lang)
@@ -233,13 +239,14 @@ function PostsPageContent() {
             return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
           }
           return (
-            <Space wrap size={[4, 4]}>
+            <Space size={[4, 4]} wrap={false} className="max-w-full overflow-hidden">
               {resolvedTags.map((tag) => (
                 <Tag
                   key={tag.key}
                   color={tag.orphan ? 'error' : undefined}
                   title={tag.label}
-                  style={{ maxWidth: 140 }}
+                  style={{ maxWidth: 96, marginInlineEnd: 0 }}
+                  className="!m-0 truncate"
                 >
                   {tag.label}
                 </Tag>
@@ -262,6 +269,8 @@ function PostsPageContent() {
         title: t('common.actions'),
         key: 'actions',
         width: POSTS_TABLE_COLS.actions,
+        className: 'admin-table-cell-actions',
+        onCell: () => ({ className: 'admin-table-cell-actions' }),
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
 
