@@ -27,7 +27,7 @@ export const AUTHORS_TABLE_COLS = {
 export const TAGS_TABLE_COLS = {
   id: 64,
   name: 320,
-  code: 160,
+  code: 220,
   priority: 96,
   created: 168,
   actions: 96,

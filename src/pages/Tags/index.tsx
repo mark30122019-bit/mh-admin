@@ -12,6 +12,7 @@ import {
   Pagination,
   Space,
   Table,
+  Tag,
   TableSkeleton,
   getTableSkeletonPreset,
   message,
@@ -124,7 +125,8 @@ function TagsPageContent() {
         title: t('tags.name'),
         dataIndex: 'name',
         width: TAGS_TABLE_COLS.name,
-        ellipsis: true,
+        className: 'admin-table-cell-wrap break-all',
+        onCell: () => ({ className: 'admin-table-cell-wrap break-all' }),
         render: (value, record) =>
           isTablePlaceholderRow(record) ? null : value,
       },
@@ -132,15 +134,16 @@ function TagsPageContent() {
         title: t('tags.code'),
         dataIndex: 'code',
         width: TAGS_TABLE_COLS.code,
-        ellipsis: true,
-        render: (value, record) =>
-          isTablePlaceholderRow(record) ? null : value,
+        render: (value: string, record) =>
+          isTablePlaceholderRow(record) ? null : (
+            <Tag color="default">{value}</Tag>
+          ),
       },
       {
         title: t('tags.priority'),
         dataIndex: 'sort',
         width: TAGS_TABLE_COLS.priority,
-        ellipsis: true,
+        align: 'center',
         render: (value: number | null | undefined, record) =>
           isTablePlaceholderRow(record) ? null : (value ?? '—'),
       },
@@ -148,7 +151,7 @@ function TagsPageContent() {
         title: t('common.createdAt'),
         dataIndex: 'createdAt',
         width: TAGS_TABLE_COLS.created,
-        ellipsis: true,
+        align: 'center',
         render: (value: string, record) =>
           isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
       },

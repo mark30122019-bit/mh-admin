@@ -45,7 +45,7 @@ const PRESETS = {
   tags: [
     { key: 'id', width: 64, variant: 'id' },
     { key: 'name', width: 320, variant: 'text' },
-    { key: 'code', width: 160, variant: 'text' },
+    { key: 'code', width: 220, variant: 'text' },
     { key: 'priority', width: 96, variant: 'id' },
     { key: 'created', width: 168, variant: 'date' },
     { key: 'actions', width: 96, variant: 'actions' },

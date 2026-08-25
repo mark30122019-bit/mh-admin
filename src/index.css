@@ -184,13 +184,17 @@ body,
 
 .admin-data-table .ant-table-tbody > tr > td.admin-table-cell-wrap {
   white-space: normal;
-  word-break: break-word;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .admin-data-table .ant-table-tbody > tr > td.admin-table-cell-wrap > span {
   display: inline;
   white-space: normal;
+  word-break: break-all;
+  overflow-wrap: anywhere;
   max-width: none;
+  text-overflow: unset;
 }
 
 .admin-data-table .ant-tag {
