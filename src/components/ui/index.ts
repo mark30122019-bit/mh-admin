@@ -36,6 +36,7 @@ export type { TableSkeletonColumn, TableSkeletonPreset } from './TableSkeleton'
 
 export { ImageUploadCard } from './ImageUploadCard'
 export { ImageCropModal } from './ImageCropModal'
+export { AuthorFormSkeleton, PostFormSkeleton } from './FormModalSkeleton'
 
 export { message, notification, notifyApiErrors } from './feedback'
 export type { MessageArgsProps, NotificationArgsProps } from './feedback'

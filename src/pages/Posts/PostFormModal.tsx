@@ -8,6 +8,7 @@ import {
   ImageUploadCard,
   Input,
   Modal,
+  PostFormSkeleton,
   Select,
   message,
 } from '@/components/ui'
@@ -97,6 +98,7 @@ export function PostFormModal({
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
   const formBusy = detailLoading || referencesLoading
+  const showSkeleton = Boolean(editingId) && detailLoading
   const watchedTitle = Form.useWatch('title', form)
 
   const authorSelectOptions = useMemo(() => {
@@ -256,11 +258,14 @@ export function PostFormModal({
         width={780}
         destroyOnHidden
       >
+        {showSkeleton ? (
+          <PostFormSkeleton />
+        ) : (
         <Form<PostFormValues>
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          disabled={formBusy}
+          disabled={referencesLoading}
         >
           <div className="mb-1 flex items-start gap-6">
             <div className="min-w-0 flex-1">
@@ -367,6 +372,7 @@ export function PostFormModal({
             </Button>
           </Form.Item>
         </Form>
+        )}
       </Modal>
 
       <ImageCropModal

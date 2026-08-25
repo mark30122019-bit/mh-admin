@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorFormPayload } from '@/api'
 import {
+  AuthorFormSkeleton,
   Button,
   Form,
   ImageCropModal,
@@ -189,6 +190,8 @@ export function AuthorFormModal({
     dispatch(authorsActions.saveRequest(payload, editingId ?? undefined))
   }
 
+  const showSkeleton = Boolean(editingId) && detailLoading
+
   return (
     <>
       <Modal
@@ -199,11 +202,13 @@ export function AuthorFormModal({
         width={680}
         destroyOnHidden
       >
+        {showSkeleton ? (
+          <AuthorFormSkeleton />
+        ) : (
         <Form<AuthorFormValues>
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          disabled={detailLoading}
         >
           <div className="mb-1 flex items-center gap-6">
             <div className="min-w-0 flex-1">
@@ -306,6 +311,7 @@ export function AuthorFormModal({
             </Button>
           </Form.Item>
         </Form>
+        )}
       </Modal>
 
       <ImageCropModal
