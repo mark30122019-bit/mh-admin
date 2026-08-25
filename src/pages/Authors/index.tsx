@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Avatar, Typography } from 'antd'
+import { Avatar, Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -27,6 +27,7 @@ import {
   selectAuthorsItems,
   selectAuthorsLoading,
 } from '@/modules/authors/selectors'
+import { getAuthorInitials } from '@/utils/authorInitials'
 import {
   buildTablePageLayout,
   isTablePlaceholderRow,
@@ -50,21 +51,27 @@ function formatDate(value: string, locale: string): string {
   })
 }
 
-function getAuthorInitials(name: string, lastName: string): string {
-  const first = name.trim().charAt(0)
-  const last = lastName.trim().charAt(0)
-  return `${first}${last}`.toUpperCase() || '?'
-}
-
 function AuthorAvatar({ author }: { author: AuthorListItem }) {
-  const initials = getAuthorInitials(author.name, author.lastName)
+  const initials = getAuthorInitials(author.name, author.lastName) ?? '?'
+  const url = author.avatar?.url
 
-  if (author.avatar?.url) {
+  if (url) {
     return (
-      <Avatar
-        size={36}
-        src={author.avatar.url}
+      <Image
+        src={url}
         alt={`${author.name} ${author.lastName}`}
+        width={36}
+        height={36}
+        style={{
+          objectFit: 'cover',
+          borderRadius: '50%',
+          display: 'block',
+          background: '#f5f5f5',
+        }}
+        preview={{
+          src: url,
+          maskClassName: 'posts-preview-mask',
+        }}
       />
     )
   }
@@ -72,14 +79,12 @@ function AuthorAvatar({ author }: { author: AuthorListItem }) {
   return (
     <Avatar
       size={36}
+      className="author-avatar-initials"
       style={{
         backgroundColor: '#e6f4ff',
         color: '#1677ff',
         fontWeight: 600,
         fontSize: 13,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
       {initials}
