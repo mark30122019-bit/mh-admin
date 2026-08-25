@@ -1,7 +1,13 @@
 import { Avatar, Layout } from 'antd'
 import type { ReactNode } from 'react'
-import { useHistory } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { Button } from '@/components/ui'
+import { authActions } from '@/modules/auth/actions'
+import type { AuthModuleState } from '@/modules/auth/auth.module'
+import {
+  selectAuthDisplayName,
+  selectAuthInitials,
+} from '@/modules/auth/selectors'
 import { AppHeader } from './Header'
 import { Sidebar } from './Sidebar'
 
@@ -11,12 +17,18 @@ type MainLayoutProps = {
   children: ReactNode
 }
 
-/**
- * Каркас админ-панели:
- * Layout.Sider + Layout.Header (профиль / logout) + Layout.Content.
- */
 export function MainLayout({ children }: MainLayoutProps) {
-  const history = useHistory()
+  const dispatch = useDispatch()
+  const displayName = useSelector((state: AuthModuleState) =>
+    selectAuthDisplayName(state),
+  )
+  const initials = useSelector((state: AuthModuleState) =>
+    selectAuthInitials(state),
+  )
+
+  const handleLogout = () => {
+    dispatch(authActions.logout())
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -34,14 +46,12 @@ export function MainLayout({ children }: MainLayoutProps) {
                   fontSize: 13,
                 }}
               >
-                SC
+                {initials}
               </Avatar>
-              <span style={{ fontWeight: 500, color: '#262626' }}>Sarah Chen</span>
+              <span style={{ fontWeight: 500, color: '#262626' }}>{displayName}</span>
             </>
           }
-          actionsSlot={
-            <Button onClick={() => history.push('/login')}>Logout</Button>
-          }
+          actionsSlot={<Button onClick={handleLogout}>Logout</Button>}
         />
         <Content
           style={{

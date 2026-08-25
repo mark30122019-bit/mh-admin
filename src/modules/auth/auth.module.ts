@@ -1,4 +1,5 @@
 import type { ISagaModule } from 'redux-dynamic-modules-saga'
+import { AUTH_INIT } from './actions'
 import { authReducer } from './reducer'
 import { authSaga } from './sagas'
 
@@ -13,5 +14,6 @@ export function getAuthModule(): ISagaModule<AuthModuleState> {
       auth: authReducer,
     },
     sagas: [authSaga],
+    initialActions: [{ type: AUTH_INIT }],
   }
 }

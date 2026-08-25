@@ -1,48 +1,72 @@
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { Redirect, useHistory, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { Spin } from '@/components/ui'
+import {
+  selectIsAuthenticated,
+  selectIsAuthInitialized,
+} from '@/modules/auth/selectors'
+import type { AuthModuleState } from '@/modules/auth/auth.module'
 
 type AuthRouteProps = {
   children: ReactNode
-  /** true — маршрут только для авторизованных (например /posts) */
+  /** Маршрут только для авторизованных (например /posts). */
   private?: boolean
-  /** true — маршрут только для гостей (например /login) */
+  /** Маршрут только для гостей (например /login). */
   guestOnly?: boolean
 }
 
-/**
- * Обёртка маршрута с проверкой авторизации.
- * Логика редиректов будет включена после реализации auth-модуля.
- */
-export function AuthRoute({ children }: AuthRouteProps) {
-  // TODO(auth): подключить селектор isAuthenticated из modules/auth
-  // const isAuthenticated = useSelector(selectIsAuthenticated)
-  // const location = useLocation()
+export function AuthRoute({
+  children,
+  private: isPrivate,
+  guestOnly,
+}: AuthRouteProps) {
+  const location = useLocation()
+  const isInitialized = useSelector((state: AuthModuleState) =>
+    selectIsAuthInitialized(state),
+  )
+  const isAuthenticated = useSelector((state: AuthModuleState) =>
+    selectIsAuthenticated(state),
+  )
 
-  // if (private && !isAuthenticated) {
-  //   return <Redirect to={{ pathname: '/login', state: { from: location } }} />
-  // }
+  if (!isInitialized) {
+    return <Spin fullPage />
+  }
 
-  // if (guestOnly && isAuthenticated) {
-  //   return <Redirect to="/posts" />
-  // }
+  if (isPrivate && !isAuthenticated) {
+    return <Redirect to={{ pathname: '/login', state: { from: location } }} />
+  }
+
+  if (guestOnly && isAuthenticated) {
+    return <Redirect to="/posts" />
+  }
 
   return <>{children}</>
 }
 
 /**
- * Редирект с главной страницы:
+ * Редирект с главной:
  * - авторизован → /posts
  * - не авторизован → /login
  */
 export function useHomeRedirect() {
-  // TODO(auth): раскомментировать после реализации auth
-  // const history = useHistory()
-  // const isAuthenticated = useSelector(selectIsAuthenticated)
-  //
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     history.replace('/posts')
-  //   } else {
-  //     history.replace('/login')
-  //   }
-  // }, [history, isAuthenticated])
+  const history = useHistory()
+  const isInitialized = useSelector((state: AuthModuleState) =>
+    selectIsAuthInitialized(state),
+  )
+  const isAuthenticated = useSelector((state: AuthModuleState) =>
+    selectIsAuthenticated(state),
+  )
+
+  useEffect(() => {
+    if (!isInitialized) return
+
+    if (isAuthenticated) {
+      history.replace('/posts')
+      return
+    }
+
+    history.replace('/login')
+  }, [history, isAuthenticated, isInitialized])
 }
