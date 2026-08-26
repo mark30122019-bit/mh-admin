@@ -4,11 +4,13 @@ import type { PostFormInput } from '@/api'
 import {
   Button,
   Form,
+  FormBannerSkeleton,
+  FormInputSkeleton,
+  FormRichTextSkeleton,
   ImageCropModal,
   ImageUploadCard,
   Input,
   Modal,
-  PostFormSkeleton,
   Select,
   message,
 } from '@/components/ui'
@@ -266,9 +268,6 @@ export function PostFormModal({
         width={780}
         destroyOnHidden
       >
-        {showSkeleton ? (
-          <PostFormSkeleton />
-        ) : (
         <Form<PostFormValues>
           form={form}
           layout="vertical"
@@ -278,57 +277,92 @@ export function PostFormModal({
             <div className="min-w-0 flex-1">
               <Form.Item
                 label={t('posts.postTitle')}
-                name="title"
-                rules={[{ required: true, message: t('posts.enterTitle') }]}
+                required
+                {...(showSkeleton
+                  ? {}
+                  : {
+                      name: 'title' as const,
+                      rules: [
+                        { required: true, message: t('posts.enterTitle') },
+                      ],
+                    })}
               >
-                <Input
-                  showCount
-                  maxLength={resolveInputMaxLength(
-                    FIELD_MAX_LENGTH.postTitle,
-                    watchedTitle,
-                  )}
-                />
+                {showSkeleton ? (
+                  <FormInputSkeleton />
+                ) : (
+                  <Input
+                    showCount
+                    maxLength={resolveInputMaxLength(
+                      FIELD_MAX_LENGTH.postTitle,
+                      watchedTitle,
+                    )}
+                  />
+                )}
               </Form.Item>
 
               <Form.Item
                 label={t('posts.author')}
-                name="authorId"
-                rules={[{ required: true, message: t('posts.selectAuthor') }]}
+                required
                 style={{ marginBottom: 0 }}
+                {...(showSkeleton
+                  ? {}
+                  : {
+                      name: 'authorId' as const,
+                      rules: [
+                        {
+                          required: true,
+                          message: t('posts.selectAuthor'),
+                        },
+                      ],
+                    })}
               >
-                <Select
-                  loading={referencesLoading}
-                  options={authorSelectOptions}
-                  placeholder={t('posts.selectAuthor')}
-                  showSearch
-                  optionFilterProp="label"
-                />
+                {showSkeleton ? (
+                  <FormInputSkeleton />
+                ) : (
+                  <Select
+                    loading={referencesLoading}
+                    options={authorSelectOptions}
+                    placeholder={t('posts.selectAuthor')}
+                    showSearch
+                    optionFilterProp="label"
+                  />
+                )}
               </Form.Item>
             </div>
 
             <Form.Item
               label={t('posts.previewPicture')}
               required
-              validateStatus={previewError ? 'error' : undefined}
-              help={previewError ?? undefined}
+              validateStatus={
+                !showSkeleton && previewError ? 'error' : undefined
+              }
+              help={!showSkeleton ? (previewError ?? undefined) : undefined}
               className="mb-0 shrink-0"
             >
               <div className="flex flex-col items-stretch gap-2">
-                <ImageUploadCard
-                  variant="banner"
-                  imageUrl={previewUrl}
-                  replaceLabel={t('posts.replacePreview')}
-                  emptyLabel={t('posts.previewHint')}
-                  hasError={Boolean(previewError)}
-                  onSelect={handleSelectPreview}
-                />
-                {previewUrl ? (
+                {showSkeleton ? (
+                  <FormBannerSkeleton />
+                ) : (
+                  <ImageUploadCard
+                    variant="banner"
+                    imageUrl={previewUrl}
+                    replaceLabel={t('posts.replacePreview')}
+                    emptyLabel={t('posts.previewHint')}
+                    hasError={Boolean(previewError)}
+                    onSelect={handleSelectPreview}
+                  />
+                )}
+                {!showSkeleton && previewUrl ? (
                   <Button
                     type="link"
                     danger
                     size="small"
                     onClick={clearPreview}
-                    style={{ padding: 0, height: 'auto', alignSelf: 'flex-start' }}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      alignSelf: 'flex-start',
+                    }}
                   >
                     {t('posts.removePreview')}
                   </Button>
@@ -337,31 +371,47 @@ export function PostFormModal({
             </Form.Item>
           </div>
 
-          <Form.Item label={t('posts.tags')} name="tagIds" className="mt-4">
-            <Select
-              mode="multiple"
-              loading={referencesLoading}
-              options={tagSelectOptions}
-              placeholder={t('posts.selectTags')}
-            />
+          <Form.Item
+            label={t('posts.tags')}
+            className="mt-4"
+            {...(showSkeleton ? {} : { name: 'tagIds' as const })}
+          >
+            {showSkeleton ? (
+              <FormInputSkeleton />
+            ) : (
+              <Select
+                mode="multiple"
+                loading={referencesLoading}
+                options={tagSelectOptions}
+                placeholder={t('posts.selectTags')}
+              />
+            )}
           </Form.Item>
 
           <Form.Item
             label={t('posts.text')}
-            name="text"
             required
-            rules={[
-              {
-                validator: (_, value: string) =>
-                  isRichTextEmpty(value)
-                    ? Promise.reject(new Error(t('posts.enterText')))
-                    : Promise.resolve(),
-              },
-            ]}
-            trigger="onChange"
-            validateTrigger="onChange"
+            {...(showSkeleton
+              ? {}
+              : {
+                  name: 'text' as const,
+                  rules: [
+                    {
+                      validator: (_: unknown, value: string) =>
+                        isRichTextEmpty(value)
+                          ? Promise.reject(new Error(t('posts.enterText')))
+                          : Promise.resolve(),
+                    },
+                  ],
+                  trigger: 'onChange' as const,
+                  validateTrigger: 'onChange' as const,
+                })}
           >
-            <RichTextEditor />
+            {showSkeleton ? (
+              <FormRichTextSkeleton editorHeight={200} />
+            ) : (
+              <RichTextEditor />
+            )}
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
@@ -372,13 +422,17 @@ export function PostFormModal({
               type="primary"
               htmlType="submit"
               loading={saving}
-              disabled={!hasPreview || referencesLoading || detailLoading}
+              disabled={
+                showSkeleton ||
+                !hasPreview ||
+                referencesLoading ||
+                detailLoading
+              }
             >
               {t('common.save')}
             </Button>
           </Form.Item>
         </Form>
-        )}
       </Modal>
 
       <ImageCropModal

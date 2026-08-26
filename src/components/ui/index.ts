@@ -50,7 +50,14 @@ export type {
 
 export { ImageUploadCard } from './ImageUploadCard'
 export { ImageCropModal } from './ImageCropModal'
-export { AuthorFormSkeleton, PostFormSkeleton, TagFormSkeleton } from './FormModalSkeleton'
+export {
+  FormInputSkeleton,
+  FormAvatarSkeleton,
+  FormBannerSkeleton,
+  FormTextAreaSkeleton,
+  FormRichTextSkeleton,
+  RICH_TEXT_TOOLBAR_HEIGHT_PX,
+} from './FormModalSkeleton'
 
 export { message, notification, notifyApiErrors } from './feedback'
 export type { MessageArgsProps, NotificationArgsProps } from './feedback'

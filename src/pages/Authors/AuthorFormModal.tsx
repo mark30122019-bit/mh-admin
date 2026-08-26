@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { AuthorFormPayload } from '@/api'
 import {
-  AuthorFormSkeleton,
   Button,
   Form,
+  FormAvatarSkeleton,
+  FormInputSkeleton,
+  FormTextAreaSkeleton,
   ImageCropModal,
   ImageUploadCard,
   Input,
@@ -212,6 +214,8 @@ export function AuthorFormModal({
     dispatch(authorsActions.saveRequest(payload, editingId ?? undefined))
   }
 
+  const descriptionSkeletonHeight = shortViewport ? 92 : 120
+
   return (
     <>
       <Modal
@@ -222,9 +226,6 @@ export function AuthorFormModal({
         width={680}
         destroyOnHidden
       >
-        {showSkeleton ? (
-          <AuthorFormSkeleton />
-        ) : (
         <Form<AuthorFormValues>
           form={form}
           layout="vertical"
@@ -234,31 +235,56 @@ export function AuthorFormModal({
             <div className="min-w-0 flex-1">
               <Form.Item
                 label={t('authors.name')}
-                name="name"
-                rules={[{ required: true, message: t('authors.enterName') }]}
+                required
+                {...(showSkeleton
+                  ? {}
+                  : {
+                      name: 'name' as const,
+                      rules: [
+                        { required: true, message: t('authors.enterName') },
+                      ],
+                    })}
               >
-                <Input
-                  showCount
-                  maxLength={resolveInputMaxLength(
-                    FIELD_MAX_LENGTH.authorName,
-                    watchedName,
-                  )}
-                />
+                {showSkeleton ? (
+                  <FormInputSkeleton />
+                ) : (
+                  <Input
+                    showCount
+                    maxLength={resolveInputMaxLength(
+                      FIELD_MAX_LENGTH.authorName,
+                      watchedName,
+                    )}
+                  />
+                )}
               </Form.Item>
 
               <Form.Item
                 label={t('authors.lastName')}
-                name="lastName"
-                rules={[{ required: true, message: t('authors.enterLastName') }]}
+                required
                 style={{ marginBottom: 0 }}
+                {...(showSkeleton
+                  ? {}
+                  : {
+                      name: 'lastName' as const,
+                      rules: [
+                        {
+                          required: true,
+                          message: t('authors.enterLastName'),
+                        },
+                      ],
+                    })}
               >
-                <Input
-                  showCount
-                  maxLength={resolveInputMaxLength(
-                    FIELD_MAX_LENGTH.authorLastName,
-                    watchedLastName,
-                  )}
-                />
+                {showSkeleton ? (
+                  <FormInputSkeleton />
+                ) : (
+                  <Input
+                    showCount
+                    maxLength={resolveInputMaxLength(
+                      FIELD_MAX_LENGTH.authorLastName,
+                      watchedLastName,
+                    )}
+                  />
+                )}
               </Form.Item>
             </div>
 
@@ -267,14 +293,18 @@ export function AuthorFormModal({
               className="mb-0 shrink-0 [&_.ant-form-item-label]:w-full [&_.ant-form-item-label>label]:w-full [&_.ant-form-item-label>label]:justify-center"
             >
               <div className="flex flex-col items-center gap-2">
-                <ImageUploadCard
-                  variant="avatar"
-                  imageUrl={avatarUrl}
-                  initials={avatarInitials}
-                  replaceLabel={t('authors.replaceAvatar')}
-                  onSelect={handleSelectAvatar}
-                />
-                {avatarUrl ? (
+                {showSkeleton ? (
+                  <FormAvatarSkeleton />
+                ) : (
+                  <ImageUploadCard
+                    variant="avatar"
+                    imageUrl={avatarUrl}
+                    initials={avatarInitials}
+                    replaceLabel={t('authors.replaceAvatar')}
+                    onSelect={handleSelectAvatar}
+                  />
+                )}
+                {!showSkeleton && avatarUrl ? (
                   <Button
                     type="link"
                     danger
@@ -289,53 +319,79 @@ export function AuthorFormModal({
             </Form.Item>
           </div>
 
-          <Form.Item label={t('authors.secondName')} name="secondName" className="mt-4">
-            <Input
-              showCount
-              maxLength={resolveInputMaxLength(
-                FIELD_MAX_LENGTH.authorSecondName,
-                watchedSecondName,
-              )}
-            />
+          <Form.Item
+            label={t('authors.secondName')}
+            className="mt-4"
+            {...(showSkeleton ? {} : { name: 'secondName' as const })}
+          >
+            {showSkeleton ? (
+              <FormInputSkeleton />
+            ) : (
+              <Input
+                showCount
+                maxLength={resolveInputMaxLength(
+                  FIELD_MAX_LENGTH.authorSecondName,
+                  watchedSecondName,
+                )}
+              />
+            )}
           </Form.Item>
 
-          <Form.Item label={t('authors.shortDescription')} name="shortDescription">
-            <Input.TextArea
-              autoSize={{ minRows: 2, maxRows: 4 }}
-              showCount
-              maxLength={resolveInputMaxLength(
-                FIELD_MAX_LENGTH.authorShortDescription,
-                watchedShortDescription,
-              )}
-            />
+          <Form.Item
+            label={t('authors.shortDescription')}
+            {...(showSkeleton ? {} : { name: 'shortDescription' as const })}
+          >
+            {showSkeleton ? (
+              <FormTextAreaSkeleton height={64} />
+            ) : (
+              <Input.TextArea
+                autoSize={{ minRows: 2, maxRows: 4 }}
+                showCount
+                maxLength={resolveInputMaxLength(
+                  FIELD_MAX_LENGTH.authorShortDescription,
+                  watchedShortDescription,
+                )}
+              />
+            )}
           </Form.Item>
 
-          <Form.Item label={t('authors.description')} name="description">
-            <Input.TextArea
-              className="form-textarea-lg"
-              autoSize={
-                shortViewport
-                  ? { minRows: 2, maxRows: 6 }
-                  : { minRows: 4, maxRows: 8 }
-              }
-              showCount
-              maxLength={resolveInputMaxLength(
-                FIELD_MAX_LENGTH.authorDescription,
-                watchedDescription,
-              )}
-            />
+          <Form.Item
+            label={t('authors.description')}
+            {...(showSkeleton ? {} : { name: 'description' as const })}
+          >
+            {showSkeleton ? (
+              <FormTextAreaSkeleton height={descriptionSkeletonHeight} />
+            ) : (
+              <Input.TextArea
+                className="form-textarea-lg"
+                autoSize={
+                  shortViewport
+                    ? { minRows: 2, maxRows: 6 }
+                    : { minRows: 4, maxRows: 8 }
+                }
+                showCount
+                maxLength={resolveInputMaxLength(
+                  FIELD_MAX_LENGTH.authorDescription,
+                  watchedDescription,
+                )}
+              />
+            )}
           </Form.Item>
 
           <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
             <Button onClick={onClose} style={{ marginRight: 8 }}>
               {t('common.cancel')}
             </Button>
-            <Button type="primary" htmlType="submit" loading={saving}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={saving}
+              disabled={showSkeleton}
+            >
               {t('common.save')}
             </Button>
           </Form.Item>
         </Form>
-        )}
       </Modal>
 
       <ImageCropModal
