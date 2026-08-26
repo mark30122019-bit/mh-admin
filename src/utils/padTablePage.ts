@@ -35,13 +35,35 @@ export type TablePageLayout<T extends object> = {
   fillRowCount: number
 }
 
+export type BuildTablePageLayoutOptions = {
+  /** 1-based номер страницы. С 2-й — всегда pageSize строк. */
+  page?: number
+  /** Размер страницы (обычно 9). Нужен для page ≥ 2. */
+  pageSize?: number
+}
+
 /**
- * ≥ TABLE_FILL_MIN_ROWS — только реальные строки, высота = count.
- * < TABLE_FILL_MIN_ROWS — пустые до 5, высота на 5.
+ * Страница 1 (текущий флоу):
+ *   ≥ TABLE_FILL_MIN_ROWS — только реальные строки, высота = count;
+ *   < TABLE_FILL_MIN_ROWS — пустые до 5, высота на 5.
+ *
+ * Страница ≥ 2:
+ *   всегда pageSize строк (паддинг placeholder'ами), даже если элементов ≤ 5.
  */
 export function buildTablePageLayout<T extends object>(
   items: T[],
+  options: BuildTablePageLayoutOptions = {},
 ): TablePageLayout<T> {
+  const page = options.page ?? 1
+  const pageSize = options.pageSize
+
+  if (page >= 2 && pageSize != null && pageSize > 0) {
+    return {
+      rows: padTablePage(items, pageSize),
+      fillRowCount: pageSize,
+    }
+  }
+
   if (items.length >= TABLE_FILL_MIN_ROWS) {
     return {
       rows: items,

@@ -10,15 +10,28 @@ export function FormInputSkeleton({ height = 32 }: { height?: number }) {
 
 /** Скелетон аватара автора (120×120, как ImageUploadCard avatar). */
 export function FormAvatarSkeleton() {
-  return <Skeleton.Avatar active size={120} shape="circle" />
+  return (
+    <Skeleton.Avatar
+      active
+      size={120}
+      shape="circle"
+      style={{ width: 120, height: 120, lineHeight: '120px' }}
+    />
+  )
 }
 
 /** Скелетон баннера превью поста (220×124, как ImageUploadCard banner). */
 export function FormBannerSkeleton() {
   return (
-    <Skeleton.Image
+    <Skeleton.Button
       active
-      style={{ width: 220, height: 124, borderRadius: 8, display: 'block' }}
+      block={false}
+      style={{
+        width: 220,
+        height: 124,
+        minWidth: 220,
+        borderRadius: 8,
+      }}
     />
   )
 }

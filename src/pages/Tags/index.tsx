@@ -93,7 +93,10 @@ function TagsPageContent() {
 
   const { rows: pageItems, fillRowCount } = useMemo(() => {
     const start = (page - 1) * pageSize
-    return buildTablePageLayout(items.slice(start, start + pageSize))
+    return buildTablePageLayout(items.slice(start, start + pageSize), {
+      page,
+      pageSize,
+    })
   }, [items, page, pageSize])
 
   const tableScroll = useTableScrollY(tableAreaRef, { observeKey: loading })

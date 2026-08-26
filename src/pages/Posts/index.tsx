@@ -119,8 +119,12 @@ function PostsPageContent() {
   const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
 
   const { rows: tableRows, fillRowCount } = useMemo(
-    () => buildTablePageLayout(items),
-    [items],
+    () =>
+      buildTablePageLayout(items, {
+        page: pagination.currentPage,
+        pageSize,
+      }),
+    [items, pageSize, pagination.currentPage],
   )
 
   const tableScroll = useTableScrollY(tableAreaRef, {
