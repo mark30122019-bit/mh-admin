@@ -1,3 +1,4 @@
+import { UserOutlined } from '@ant-design/icons'
 import { Skeleton } from 'antd'
 
 /** Высота шапки Quill (`.ql-toolbar`) в теме snow. */
@@ -8,31 +9,26 @@ export function FormInputSkeleton({ height = 32 }: { height?: number }) {
   return <Skeleton.Input active block style={{ height, minWidth: 0 }} />
 }
 
-/** Скелетон аватара автора (120×120, как ImageUploadCard avatar). */
+/** Скелетон аватара: 120×120 + UserOutlined, как пустая ImageUploadCard. */
 export function FormAvatarSkeleton() {
   return (
-    <Skeleton.Avatar
-      active
-      size={120}
-      shape="circle"
-      style={{ width: 120, height: 120, lineHeight: '120px' }}
-    />
+    <span className="form-upload-skeleton form-upload-skeleton--avatar">
+      <Skeleton.Node
+        active
+        style={{ width: 120, height: 120, borderRadius: '50%' }}
+      >
+        <UserOutlined style={{ fontSize: 36, color: 'rgba(0, 0, 0, 0.25)' }} />
+      </Skeleton.Node>
+    </span>
   )
 }
 
-/** Скелетон баннера превью поста (220×124, как ImageUploadCard banner). */
+/** Скелетон баннера превью поста (220×124, как ImageUploadCard banner) + SVG. */
 export function FormBannerSkeleton() {
   return (
-    <Skeleton.Button
-      active
-      block={false}
-      style={{
-        width: 220,
-        height: 124,
-        minWidth: 220,
-        borderRadius: 8,
-      }}
-    />
+    <span className="form-upload-skeleton form-upload-skeleton--banner">
+      <Skeleton.Image active />
+    </span>
   )
 }
 

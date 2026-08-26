@@ -282,6 +282,48 @@ body,
   display: block;
 }
 
+/* Скелетон ImageUploadCard: SVG на весь размер аватара / баннера */
+.form-upload-skeleton {
+  display: block;
+  line-height: 0;
+}
+
+.form-upload-skeleton--avatar,
+.form-upload-skeleton--avatar .ant-skeleton,
+.form-upload-skeleton--avatar .ant-skeleton-image,
+.form-upload-skeleton--avatar .ant-skeleton-avatar {
+  width: 120px !important;
+  height: 120px !important;
+}
+
+.form-upload-skeleton--avatar .ant-skeleton-image,
+.form-upload-skeleton--avatar .ant-skeleton-avatar {
+  border-radius: 50% !important;
+}
+
+.form-upload-skeleton--avatar .ant-skeleton-image {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-upload-skeleton--banner,
+.form-upload-skeleton--banner .ant-skeleton,
+.form-upload-skeleton--banner .ant-skeleton-image {
+  display: block;
+  width: 220px !important;
+  height: 124px !important;
+}
+
+.form-upload-skeleton--banner .ant-skeleton-image {
+  border-radius: 8px;
+}
+
+.form-upload-skeleton--banner .ant-skeleton-image-svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Тонкий минималистичный скроллбар для текстовых полей */
 textarea,
 .ant-input,
