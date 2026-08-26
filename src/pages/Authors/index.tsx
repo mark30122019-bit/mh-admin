@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { Avatar, Image, Typography } from 'antd'
+import { Avatar, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -13,6 +13,7 @@ import {
   Pagination,
   Space,
   Table,
+  TableMediaImage,
   buildTableSkeletonRows,
   isTableSkeletonRow,
   message,
@@ -54,17 +55,12 @@ function AuthorAvatar({ author }: { author: AuthorListItem }) {
 
   if (url) {
     return (
-      <Image
+      <TableMediaImage
         src={url}
         alt={`${author.name} ${author.lastName}`}
         width={36}
         height={36}
-        style={{
-          objectFit: 'cover',
-          borderRadius: '50%',
-          display: 'block',
-          background: '#f5f5f5',
-        }}
+        shape="circle"
         preview={{
           src: url,
           maskClassName: 'posts-preview-mask',

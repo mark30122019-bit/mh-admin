@@ -46,16 +46,36 @@ src/
 2. **Dynamic modules** — бизнес-редьюсеры не в корневом store: `auth` через `AuthProvider`, `posts` + `authors` + `tags` один раз в `AdminShell` (layout не мигает при смене раздела).
 3. **Роутинг в сагах** — `push()` из `connected-react-router`.
 4. **Авторизация** — токены в cookies; на 401 — refresh и повтор запроса.
-5. **Lazy** — `React.lazy` для Login/Home; страницы админки — обычный импорт (стабильный shell).
+5. **Lazy load (как в ТЗ, без мигания layout)**  
+   - Все страницы через dynamic import (`React.lazy` / `lazyWithPreload`).  
+   - Один `Suspense` внутри `AdminShell` вокруг контента: сайдбар и шапка остаются на месте.  
+   - Прогрев чанков + данных списков при входе в админку и по `onMouseEnter` в меню.  
+   - После прогрева страница рендерится из sync-кэша модуля (без кадра Suspense).  
+   - Ожидание данных — скелетоны строк таблицы, **без** полноэкранного Spin.
 6. **Стили** — Ant Design + Tailwind для layout.
 
 Правила для агента: [`.cursor/rules/project.mdc`](.cursor/rules/project.mdc).
+
+## Lazy load и UX списков (для проверки ТЗ)
+
+Реализовано по рекомендации «правильного» lazy для SPA-админки:
+
+| Приём | Где |
+|-------|-----|
+| Динамические страницы (меньше main chunk) | `routes/adminPages.ts` — `lazyWithPreload` |
+| Один Suspense вокруг Switch внутри layout | `AdminShell` + `LazyPage` |
+| Prefetch по hover в меню | `Sidebar` → `warmAdminSection` |
+| Прогрев при входе в админку | `warmAllAdminPages` в `AdminShell` |
+| Без полноэкранного лоадера на списках | скелетоны tbody / `PageContentSkeleton` в content |
+
+Ключевые файлы: `src/utils/lazyWithPreload.ts`, `src/utils/prefetchAdminPage.ts`, `src/routes/index.tsx`, `src/components/Layout/Sidebar.tsx`.
 
 ## UX
 
 - Фокус на desktop / tablet (B2B CMS); полноценный mobile не делали намеренно.
 - В таблице постов `authorName` / `tagNames` показываются как в ответе API; пустое значение — прочерк. Назначить автора или теги снова можно через обычный Edit.
 - У тега поле `sort` необязательное (`—` в списке, пустое не уходит в FormData).
+- Превью/аватары в таблицах: скелетон той же формы, пока грузится картинка (`TableMediaImage`).
 
 ## i18n
 
