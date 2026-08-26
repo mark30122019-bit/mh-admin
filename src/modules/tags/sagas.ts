@@ -11,6 +11,7 @@ import {
   type TagListItem,
 } from '@/api'
 import { generateEntityCode } from '@/utils/generateCode'
+import { postsActions } from '@/modules/posts/actions'
 import {
   TAGS_DELETE_REQUEST,
   TAGS_DETAIL_REQUEST,
@@ -73,6 +74,7 @@ function* saveTagWorker(action: TagsSaveRequestAction): SagaIterator {
 
     yield put(tagsActions.saveSuccess())
     yield put(tagsActions.fetchRequest())
+    yield put(postsActions.referencesRequest())
   } catch (error) {
     const parsed = parseApiError(error, 'Failed to save tag')
     yield put(tagsActions.saveFailure(parsed.message, parsed.fieldErrors))
@@ -84,6 +86,7 @@ function* deleteTagWorker(action: TagsDeleteRequestAction): SagaIterator {
     yield call(deleteTag, action.payload.id)
     yield put(tagsActions.deleteSuccess())
     yield put(tagsActions.fetchRequest())
+    yield put(postsActions.referencesRequest())
   } catch (error) {
     const parsed = parseApiError(error, 'Failed to delete tag')
     yield put(tagsActions.deleteFailure(parsed.message))

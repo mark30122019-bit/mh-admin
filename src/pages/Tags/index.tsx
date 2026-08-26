@@ -21,6 +21,7 @@ import {
   wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
 import type { TableSkeletonRow } from '@/components/ui'
+import { useDataRevalidation } from '@/hooks/useDataRevalidation'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
@@ -78,6 +79,11 @@ function TagsPageContent() {
     if (!error) return
     notification.error({ message: t('tags.loadFailed'), description: error })
   }, [error, t])
+
+  const revalidateTags = useCallback(() => {
+    dispatch(tagsActions.fetchRequest())
+  }, [dispatch])
+  useDataRevalidation(revalidateTags)
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {

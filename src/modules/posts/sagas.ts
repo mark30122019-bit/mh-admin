@@ -9,10 +9,15 @@ import {
   fetchTagsList,
   parseApiError,
   updatePost,
+  type AuthorListItem,
   type PostDetail,
   type PostFormPayload,
+  type PostsListResponse,
+  type TagListItem,
 } from '@/api'
 import { generateEntityCode } from '@/utils/generateCode'
+import { idsEqual } from '@/utils/entityId'
+import { mergePostListItemWithForm } from '@/utils/mergePostListItem'
 import {
   POSTS_DELETE_REQUEST,
   POSTS_DETAIL_REQUEST,
@@ -68,14 +73,36 @@ function* savePostWorker(action: PostsSaveRequestAction): SagaIterator {
     const code: string = yield call(resolvePostCode, id)
     const payload: PostFormPayload = { ...values, code }
 
+    let savedId = id
     if (id) {
       yield call(updatePost, id, payload)
     } else {
-      yield call(createPost, payload)
+      savedId = yield call(createPost, payload)
     }
 
     yield put(postsActions.saveSuccess())
-    yield put(postsActions.fetchRequest(page))
+
+    // Свежий справочник + список; author/tags в list иногда отстают от save.
+    const authors: AuthorListItem[] = yield call(fetchAuthorsList)
+    const tags: TagListItem[] = yield call(fetchTagsList)
+    yield put(postsActions.referencesSuccess(authors, tags))
+
+    const response: PostsListResponse = yield call(fetchPostsList, { page })
+    const items =
+      savedId != null
+        ? response.items.map((item) =>
+            idsEqual(item.id, savedId)
+              ? mergePostListItemWithForm(item, values, authors, tags)
+              : item,
+          )
+        : response.items
+
+    yield put(
+      postsActions.fetchSuccess({
+        items,
+        pagination: response.pagination,
+      }),
+    )
   } catch (error) {
     const parsed = parseApiError(error, 'Failed to save post')
     yield put(postsActions.saveFailure(parsed.message, parsed.fieldErrors))

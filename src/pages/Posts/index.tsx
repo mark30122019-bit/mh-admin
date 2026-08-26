@@ -14,16 +14,17 @@ import {
   Button,
   EllipsisTooltip,
   Modal,
+  OverflowTags,
   Pagination,
   Space,
   Table,
-  Tag,
   buildTableSkeletonRows,
   isTableSkeletonRow,
   message,
   notification,
   wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
+import { useDataRevalidation } from '@/hooks/useDataRevalidation'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
@@ -102,6 +103,12 @@ function PostsPageContent() {
     dispatch(postsActions.referencesRequest())
     dispatch(postsActions.fetchRequest(pageRef.current))
   }, [dispatch])
+
+  const revalidatePosts = useCallback(() => {
+    dispatch(postsActions.fetchRequest(pageRef.current))
+    dispatch(postsActions.referencesRequest())
+  }, [dispatch])
+  useDataRevalidation(revalidatePosts)
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
@@ -250,21 +257,7 @@ function PostsPageContent() {
           if (resolvedTags.length === 0) {
             return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
           }
-          return (
-            <Space size={[4, 4]} wrap={false} className="max-w-full overflow-hidden">
-              {resolvedTags.map((tag) => (
-                <EllipsisTooltip key={tag.key} title={tag.label}>
-                  <Tag
-                    color={tag.orphan ? 'error' : undefined}
-                    style={{ maxWidth: 96, marginInlineEnd: 0 }}
-                    className="!m-0 truncate"
-                  >
-                    {tag.label}
-                  </Tag>
-                </EllipsisTooltip>
-              ))}
-            </Space>
-          )
+          return <OverflowTags tags={resolvedTags} />
         },
       },
       {

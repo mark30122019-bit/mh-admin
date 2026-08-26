@@ -14,6 +14,8 @@ export { Table } from './Table'
 export type { TableProps } from './Table'
 
 export { EllipsisTooltip } from './EllipsisTooltip'
+export { OverflowTags } from './OverflowTags'
+export type { OverflowTagItem } from './OverflowTags'
 
 export { Pagination } from './Pagination'
 export type { PaginationProps } from './Pagination'

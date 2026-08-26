@@ -8,6 +8,7 @@ import {
   parseApiError,
   updateAuthor,
 } from '@/api'
+import { postsActions } from '@/modules/posts/actions'
 import {
   AUTHORS_DELETE_REQUEST,
   AUTHORS_DETAIL_REQUEST,
@@ -53,6 +54,8 @@ function* saveAuthorWorker(action: AuthorsSaveRequestAction): SagaIterator {
 
     yield put(authorsActions.saveSuccess())
     yield put(authorsActions.fetchRequest())
+    // Справочник авторов в модуле posts (AdminShell не размонтируется).
+    yield put(postsActions.referencesRequest())
   } catch (error) {
     const parsed = parseApiError(error, 'Failed to save author')
     yield put(authorsActions.saveFailure(parsed.message, parsed.fieldErrors))
@@ -64,6 +67,7 @@ function* deleteAuthorWorker(action: AuthorsDeleteRequestAction): SagaIterator {
     yield call(deleteAuthor, action.payload.id)
     yield put(authorsActions.deleteSuccess())
     yield put(authorsActions.fetchRequest())
+    yield put(postsActions.referencesRequest())
   } catch (error) {
     const parsed = parseApiError(error, 'Failed to delete author')
     yield put(authorsActions.deleteFailure(parsed.message))

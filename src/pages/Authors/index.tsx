@@ -20,6 +20,7 @@ import {
   wrapColumnsWithSkeletonLoading,
 } from '@/components/ui'
 import type { TableSkeletonRow } from '@/components/ui'
+import { useDataRevalidation } from '@/hooks/useDataRevalidation'
 import { useTableScrollY } from '@/hooks/useTableScrollY'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
@@ -125,6 +126,11 @@ function AuthorsPageContent() {
     if (!error) return
     notification.error({ message: t('authors.loadFailed'), description: error })
   }, [error, t])
+
+  const revalidateAuthors = useCallback(() => {
+    dispatch(authorsActions.fetchRequest())
+  }, [dispatch])
+  useDataRevalidation(revalidateAuthors)
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
