@@ -2,7 +2,6 @@ import { Typography } from 'antd'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Button, Form, Input, notification } from '@/components/ui'
-import { LanguageSwitcher } from '@/components/Layout/LanguageSwitcher'
 import { useTranslation } from '@/hooks/useTranslation'
 import { authActions } from '@/modules/auth/actions'
 import type { AuthModuleState } from '@/modules/auth/auth.module'
@@ -38,11 +37,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f0f2f5] px-4">
-      <div className="relative w-full max-w-[420px] rounded-lg bg-white p-10 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
-        <div className="absolute right-6 top-6">
-          <LanguageSwitcher />
-        </div>
-
+      <div className="w-full max-w-[420px] rounded-lg bg-white p-10 shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
         <Typography.Text
           strong
           style={{ color: '#1677ff', fontSize: 15, display: 'block', marginBottom: 28 }}
