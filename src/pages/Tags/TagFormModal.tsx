@@ -43,7 +43,7 @@ export function TagFormModal({ open, initialTag, onClose }: TagFormModalProps) {
     error.field === 'code' ? { ...error, field: 'name' } : error,
   )
 
-  useFormApiErrors(form, formFieldErrors, saveError, 'Tag')
+  useFormApiErrors(form, formFieldErrors, saveError, t('tags.saveFailed'))
 
   const watchedName = Form.useWatch('name', form)
 

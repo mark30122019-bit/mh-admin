@@ -52,6 +52,10 @@ export type TranslationDict = {
     created: string
     updated: string
     loadFailed: string
+    deleteFailed: string
+    saveFailed: string
+    loadDetailFailed: string
+    loadReferencesFailed: string
     previewRequired: string
     selectImage: string
     remove: string
@@ -79,6 +83,9 @@ export type TranslationDict = {
     created: string
     updated: string
     loadFailed: string
+    deleteFailed: string
+    saveFailed: string
+    loadDetailFailed: string
     enterName: string
     enterLastName: string
   }
@@ -97,6 +104,8 @@ export type TranslationDict = {
     created: string
     updated: string
     loadFailed: string
+    deleteFailed: string
+    saveFailed: string
     enterName: string
   }
   orphan: {
@@ -160,6 +169,10 @@ export const ru: TranslationDict = {
     created: 'Пост создан',
     updated: 'Пост обновлён',
     loadFailed: 'Не удалось загрузить посты',
+    deleteFailed: 'Не удалось удалить пост',
+    saveFailed: 'Не удалось сохранить пост',
+    loadDetailFailed: 'Не удалось загрузить пост',
+    loadReferencesFailed: 'Не удалось загрузить справочники',
     previewRequired: 'Загрузите превью поста',
     selectImage: 'Выберите изображение',
     remove: 'Удалить',
@@ -187,6 +200,9 @@ export const ru: TranslationDict = {
     created: 'Автор создан',
     updated: 'Автор обновлён',
     loadFailed: 'Не удалось загрузить авторов',
+    deleteFailed: 'Не удалось удалить автора',
+    saveFailed: 'Не удалось сохранить автора',
+    loadDetailFailed: 'Не удалось загрузить автора',
     enterName: 'Введите имя',
     enterLastName: 'Введите фамилию',
   },
@@ -205,6 +221,8 @@ export const ru: TranslationDict = {
     created: 'Тег создан',
     updated: 'Тег обновлён',
     loadFailed: 'Не удалось загрузить теги',
+    deleteFailed: 'Не удалось удалить тег',
+    saveFailed: 'Не удалось сохранить тег',
     enterName: 'Введите название',
   },
   orphan: {
@@ -268,6 +286,10 @@ export const en: TranslationDict = {
     created: 'Post created',
     updated: 'Post updated',
     loadFailed: 'Failed to load posts',
+    deleteFailed: 'Failed to delete post',
+    saveFailed: 'Failed to save post',
+    loadDetailFailed: 'Failed to load post',
+    loadReferencesFailed: 'Failed to load references',
     previewRequired: 'Upload a post preview',
     selectImage: 'Select an image',
     remove: 'Remove',
@@ -295,6 +317,9 @@ export const en: TranslationDict = {
     created: 'Author created',
     updated: 'Author updated',
     loadFailed: 'Failed to load authors',
+    deleteFailed: 'Failed to delete author',
+    saveFailed: 'Failed to save author',
+    loadDetailFailed: 'Failed to load author',
     enterName: 'Enter name',
     enterLastName: 'Enter last name',
   },
@@ -313,6 +338,8 @@ export const en: TranslationDict = {
     created: 'Tag created',
     updated: 'Tag updated',
     loadFailed: 'Failed to load tags',
+    deleteFailed: 'Failed to delete tag',
+    saveFailed: 'Failed to save tag',
     enterName: 'Enter name',
   },
   orphan: {

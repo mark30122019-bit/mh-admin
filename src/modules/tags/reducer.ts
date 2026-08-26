@@ -27,6 +27,7 @@ export interface TagsState {
   saveError: string | null
   saveFieldErrors: ApiFieldError[]
   deletingId: number | null
+  deleteError: string | null
 }
 
 const initialState: TagsState = {
@@ -39,6 +40,7 @@ const initialState: TagsState = {
   saveError: null,
   saveFieldErrors: [],
   deletingId: null,
+  deleteError: null,
 }
 
 export function tagsReducer(
@@ -93,10 +95,19 @@ export function tagsReducer(
         saveFieldErrors: tagsAction.payload.fieldErrors,
       }
     case TAGS_DELETE_REQUEST:
-      return { ...state, deletingId: tagsAction.payload.id }
+      return {
+        ...state,
+        deletingId: tagsAction.payload.id,
+        deleteError: null,
+      }
     case TAGS_DELETE_SUCCESS:
+      return { ...state, deletingId: null, deleteError: null }
     case TAGS_DELETE_FAILURE:
-      return { ...state, deletingId: null }
+      return {
+        ...state,
+        deletingId: null,
+        deleteError: tagsAction.payload.message,
+      }
     default:
       return state
   }

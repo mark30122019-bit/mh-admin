@@ -35,3 +35,7 @@ export function selectTagsSaveFieldErrors(state: TagsModuleState) {
 export function selectTagsDeletingId(state: TagsModuleState) {
   return state.tags.deletingId
 }
+
+export function selectTagsDeleteError(state: TagsModuleState) {
+  return state.tags.deleteError
+}

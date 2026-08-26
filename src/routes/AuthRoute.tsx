@@ -1,13 +1,8 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Redirect, useHistory, useLocation } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 import { Spin } from '@/components/ui'
-import {
-  selectIsAuthenticated,
-  selectIsAuthInitialized,
-} from '@/modules/auth/selectors'
-import type { AuthModuleState } from '@/modules/auth/auth.module'
+import { useAuth } from '@/hooks/useAuth'
 
 type AuthRouteProps = {
   children: ReactNode
@@ -23,12 +18,7 @@ export function AuthRoute({
   guestOnly,
 }: AuthRouteProps) {
   const location = useLocation()
-  const isInitialized = useSelector((state: AuthModuleState) =>
-    selectIsAuthInitialized(state),
-  )
-  const isAuthenticated = useSelector((state: AuthModuleState) =>
-    selectIsAuthenticated(state),
-  )
+  const { isAuthenticated, isInitialized } = useAuth()
 
   if (!isInitialized) {
     return <Spin fullPage />
@@ -52,12 +42,7 @@ export function AuthRoute({
  */
 export function useHomeRedirect() {
   const history = useHistory()
-  const isInitialized = useSelector((state: AuthModuleState) =>
-    selectIsAuthInitialized(state),
-  )
-  const isAuthenticated = useSelector((state: AuthModuleState) =>
-    selectIsAuthenticated(state),
-  )
+  const { isAuthenticated, isInitialized } = useAuth()
 
   useEffect(() => {
     if (!isInitialized) return

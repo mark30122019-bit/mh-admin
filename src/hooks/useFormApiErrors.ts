@@ -4,11 +4,15 @@ import type { ApiFieldError } from '@/api'
 import { mapFieldErrorsToFormFields } from '@/api'
 import { notification } from '@/components/ui'
 
+/**
+ * Проставляет fieldErrors в Form и показывает notification при общей ошибке save.
+ * `saveFailedTitle` — уже переведённый заголовок (не хардкод EN).
+ */
 export function useFormApiErrors(
   form: FormInstance,
   fieldErrors: ApiFieldError[],
   saveError: string | null,
-  entityLabel: string,
+  saveFailedTitle: string,
 ): void {
   useEffect(() => {
     if (fieldErrors.length === 0) return
@@ -19,8 +23,8 @@ export function useFormApiErrors(
     if (!saveError || fieldErrors.length > 0) return
 
     notification.error({
-      message: `${entityLabel} save failed`,
+      message: saveFailedTitle,
       description: saveError,
     })
-  }, [entityLabel, fieldErrors.length, saveError])
+  }, [fieldErrors.length, saveError, saveFailedTitle])
 }

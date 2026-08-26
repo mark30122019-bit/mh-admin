@@ -35,13 +35,16 @@ export interface PostsState {
   error: string | null
   detail: PostDetail | null
   detailLoading: boolean
+  detailError: string | null
   saving: boolean
   saveError: string | null
   saveFieldErrors: ApiFieldError[]
   deletingId: number | null
+  deleteError: string | null
   authorOptions: AuthorListItem[]
   tagOptions: TagListItem[]
   referencesLoading: boolean
+  referencesError: string | null
 }
 
 const initialPagination: ApiPagination = {
@@ -58,13 +61,16 @@ const initialState: PostsState = {
   error: null,
   detail: null,
   detailLoading: false,
+  detailError: null,
   saving: false,
   saveError: null,
   saveFieldErrors: [],
   deletingId: null,
+  deleteError: null,
   authorOptions: [],
   tagOptions: [],
   referencesLoading: false,
+  referencesError: null,
 }
 
 export function postsReducer(
@@ -99,17 +105,35 @@ export function postsReducer(
     case POSTS_FETCH_FAILURE:
       return { ...state, loading: false, error: postsAction.payload.message }
     case POSTS_DETAIL_REQUEST:
-      return { ...state, detailLoading: true, detail: null }
+      return {
+        ...state,
+        detailLoading: true,
+        detail: null,
+        detailError: null,
+      }
     case POSTS_DETAIL_SUCCESS:
       return {
         ...state,
         detailLoading: false,
+        detailError: null,
         detail: postsAction.payload.detail,
       }
     case POSTS_DETAIL_FAILURE:
-      return { ...state, detailLoading: false, detail: null }
+      return {
+        ...state,
+        detailLoading: false,
+        detail: null,
+        detailError: postsAction.payload.message,
+      }
     case POSTS_DETAIL_CLEAR:
-      return { ...state, detail: null, saveError: null, saveFieldErrors: [] }
+      return {
+        ...state,
+        detail: null,
+        detailError: null,
+        saveError: null,
+        saveFieldErrors: [],
+        referencesError: null,
+      }
     case POSTS_SAVE_REQUEST:
       return {
         ...state,
@@ -133,21 +157,39 @@ export function postsReducer(
         saveFieldErrors: postsAction.payload.fieldErrors,
       }
     case POSTS_DELETE_REQUEST:
-      return { ...state, deletingId: postsAction.payload.id }
+      return {
+        ...state,
+        deletingId: postsAction.payload.id,
+        deleteError: null,
+      }
     case POSTS_DELETE_SUCCESS:
+      return { ...state, deletingId: null, deleteError: null }
     case POSTS_DELETE_FAILURE:
-      return { ...state, deletingId: null }
+      return {
+        ...state,
+        deletingId: null,
+        deleteError: postsAction.payload.message,
+      }
     case POSTS_REFERENCES_REQUEST:
-      return { ...state, referencesLoading: true }
+      return {
+        ...state,
+        referencesLoading: true,
+        referencesError: null,
+      }
     case POSTS_REFERENCES_SUCCESS:
       return {
         ...state,
         referencesLoading: false,
+        referencesError: null,
         authorOptions: postsAction.payload.authors,
         tagOptions: postsAction.payload.tags,
       }
     case POSTS_REFERENCES_FAILURE:
-      return { ...state, referencesLoading: false }
+      return {
+        ...state,
+        referencesLoading: false,
+        referencesError: postsAction.payload.message,
+      }
     default:
       return state
   }

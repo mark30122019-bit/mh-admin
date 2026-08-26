@@ -20,6 +20,10 @@ export function selectAuthorDetailLoading(state: AuthorsModuleState) {
   return state.authors.detailLoading
 }
 
+export function selectAuthorDetailError(state: AuthorsModuleState) {
+  return state.authors.detailError
+}
+
 export function selectAuthorsSaving(state: AuthorsModuleState) {
   return state.authors.saving
 }
@@ -34,4 +38,8 @@ export function selectAuthorsSaveFieldErrors(state: AuthorsModuleState) {
 
 export function selectAuthorsDeletingId(state: AuthorsModuleState) {
   return state.authors.deletingId
+}
+
+export function selectAuthorsDeleteError(state: AuthorsModuleState) {
+  return state.authors.deleteError
 }

@@ -23,10 +23,12 @@ export interface AuthorsState {
   error: string | null
   detail: AuthorDetail | null
   detailLoading: boolean
+  detailError: string | null
   saving: boolean
   saveError: string | null
   saveFieldErrors: ApiFieldError[]
   deletingId: number | null
+  deleteError: string | null
 }
 
 const initialState: AuthorsState = {
@@ -35,10 +37,12 @@ const initialState: AuthorsState = {
   error: null,
   detail: null,
   detailLoading: false,
+  detailError: null,
   saving: false,
   saveError: null,
   saveFieldErrors: [],
   deletingId: null,
+  deleteError: null,
 }
 
 export function authorsReducer(
@@ -63,17 +67,33 @@ export function authorsReducer(
     case AUTHORS_FETCH_FAILURE:
       return { ...state, loading: false, error: authorsAction.payload.message }
     case AUTHORS_DETAIL_REQUEST:
-      return { ...state, detailLoading: true, detail: null }
+      return {
+        ...state,
+        detailLoading: true,
+        detail: null,
+        detailError: null,
+      }
     case AUTHORS_DETAIL_SUCCESS:
       return {
         ...state,
         detailLoading: false,
+        detailError: null,
         detail: authorsAction.payload.detail,
       }
     case AUTHORS_DETAIL_FAILURE:
-      return { ...state, detailLoading: false }
+      return {
+        ...state,
+        detailLoading: false,
+        detailError: authorsAction.payload.message,
+      }
     case AUTHORS_DETAIL_CLEAR:
-      return { ...state, detail: null, saveError: null, saveFieldErrors: [] }
+      return {
+        ...state,
+        detail: null,
+        detailError: null,
+        saveError: null,
+        saveFieldErrors: [],
+      }
     case AUTHORS_SAVE_REQUEST:
       return {
         ...state,
@@ -97,10 +117,19 @@ export function authorsReducer(
         saveFieldErrors: authorsAction.payload.fieldErrors,
       }
     case AUTHORS_DELETE_REQUEST:
-      return { ...state, deletingId: authorsAction.payload.id }
+      return {
+        ...state,
+        deletingId: authorsAction.payload.id,
+        deleteError: null,
+      }
     case AUTHORS_DELETE_SUCCESS:
+      return { ...state, deletingId: null, deleteError: null }
     case AUTHORS_DELETE_FAILURE:
-      return { ...state, deletingId: null }
+      return {
+        ...state,
+        deletingId: null,
+        deleteError: authorsAction.payload.message,
+      }
     default:
       return state
   }

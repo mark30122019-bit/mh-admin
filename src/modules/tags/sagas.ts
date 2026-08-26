@@ -7,7 +7,6 @@ import {
   fetchTagsList,
   parseApiError,
   updateTag,
-  type TagDetail,
   type TagFormPayload,
   type TagListItem,
 } from '@/api'
@@ -22,8 +21,9 @@ import {
   type TagsDetailRequestAction,
   type TagsSaveRequestAction,
 } from './actions'
-import { selectTagDetail, selectTagsItems } from './selectors'
+import { selectTagsItems } from './selectors'
 
+/** Code для create — генерируем; для update — из списка (форма уже без detail API). */
 function* resolveTagCode(id?: number): SagaIterator {
   if (!id) {
     return generateEntityCode('tag')
@@ -35,13 +35,7 @@ function* resolveTagCode(id?: number): SagaIterator {
     return fromList.code
   }
 
-  const detail: TagDetail | null = yield select(selectTagDetail)
-  if (detail && detail.id === id) {
-    return detail.code
-  }
-
-  const fetched: TagDetail = yield call(fetchTagDetail, id)
-  return fetched.code
+  throw new Error(`Tag #${id} not found in list`)
 }
 
 function* fetchTagsWorker(): SagaIterator {

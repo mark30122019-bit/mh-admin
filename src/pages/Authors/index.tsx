@@ -25,6 +25,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { authorsActions } from '@/modules/authors/actions'
 import type { AuthorsModuleState } from '@/modules/authors/authors.module'
 import {
+  selectAuthorsDeleteError,
   selectAuthorsDeletingId,
   selectAuthorsError,
   selectAuthorsItems,
@@ -41,19 +42,10 @@ import {
   tableFillStyle,
 } from '@/utils/tableColumns'
 import { AuthorFormModal } from './AuthorFormModal'
+import { formatTableDate } from '@/utils/formatDate'
 
 type AuthorDataRow = AuthorListItem | TablePlaceholderRow
 type AuthorTableRow = AuthorDataRow | TableSkeletonRow
-
-function formatDate(value: string, locale: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
 
 function AuthorAvatar({ author }: { author: AuthorListItem }) {
   const initials = getAuthorInitials(author.name, author.lastName) ?? '?'
@@ -112,6 +104,9 @@ function AuthorsPageContent() {
   const deletingId = useSelector((state: AuthorsModuleState) =>
     selectAuthorsDeletingId(state),
   )
+  const deleteError = useSelector((state: AuthorsModuleState) =>
+    selectAuthorsDeleteError(state),
+  )
 
   const [page, setPage] = useState(1)
   const [modalOpen, setModalOpen] = useState(false)
@@ -133,10 +128,17 @@ function AuthorsPageContent() {
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
-      message.success(t('authors.deleted'))
+      if (deleteError) {
+        notification.error({
+          message: t('authors.deleteFailed'),
+          description: deleteError,
+        })
+      } else {
+        message.success(t('authors.deleted'))
+      }
     }
     prevDeletingIdRef.current = deletingId
-  }, [deletingId, t])
+  }, [deletingId, deleteError, t])
 
   const { rows: pageItems, fillRowCount } = useMemo(() => {
     const start = (page - 1) * pageSize
@@ -223,7 +225,7 @@ function AuthorsPageContent() {
         width: AUTHORS_TABLE_COLS.created,
         ellipsis: true,
         render: (value: string, record) =>
-          isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
+          isTablePlaceholderRow(record) ? null : formatTableDate(value, dateLocale),
       },
       {
         title: t('common.actions'),

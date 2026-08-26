@@ -30,6 +30,7 @@ import { postsActions } from '@/modules/posts/actions'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
   selectPostsAuthorOptions,
+  selectPostsDeleteError,
   selectPostsDeletingId,
   selectPostsError,
   selectPostsItems,
@@ -52,21 +53,11 @@ import {
   POSTS_TABLE_PREVIEW,
   tableFillStyle,
 } from '@/utils/tableColumns'
+import { formatTableDate } from '@/utils/formatDate'
 import { PostFormModal } from './PostFormModal'
 
 type PostDataRow = PostListItem | TablePlaceholderRow
 type PostTableRow = PostDataRow | TableSkeletonRow
-
-function formatCreatedAt(value: string, locale: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return date.toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
 
 function PostsPageContent() {
   const dispatch = useDispatch()
@@ -82,6 +73,9 @@ function PostsPageContent() {
   const error = useSelector((state: PostsModuleState) => selectPostsError(state))
   const deletingId = useSelector((state: PostsModuleState) =>
     selectPostsDeletingId(state),
+  )
+  const deleteError = useSelector((state: PostsModuleState) =>
+    selectPostsDeleteError(state),
   )
   const authorCatalog = useSelector((state: PostsModuleState) =>
     selectPostsAuthorOptions(state),
@@ -111,10 +105,17 @@ function PostsPageContent() {
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
-      message.success(t('posts.deleted'))
+      if (deleteError) {
+        notification.error({
+          message: t('posts.deleteFailed'),
+          description: deleteError,
+        })
+      } else {
+        message.success(t('posts.deleted'))
+      }
     }
     prevDeletingIdRef.current = deletingId
-  }, [deletingId, t])
+  }, [deletingId, deleteError, t])
 
   const pageSize = pagination.perPage || LIST_PAGE_SIZE.posts
 
@@ -274,7 +275,7 @@ function PostsPageContent() {
         render: (value: string, record) =>
           isTablePlaceholderRow(record)
             ? null
-            : formatCreatedAt(value, dateLocale),
+            : formatTableDate(value, dateLocale),
       },
       {
         title: t('common.actions'),

@@ -24,6 +24,10 @@ export function selectPostDetailLoading(state: PostsModuleState) {
   return state.posts.detailLoading
 }
 
+export function selectPostDetailError(state: PostsModuleState) {
+  return state.posts.detailError
+}
+
 export function selectPostsSaving(state: PostsModuleState) {
   return state.posts.saving
 }
@@ -40,6 +44,10 @@ export function selectPostsDeletingId(state: PostsModuleState) {
   return state.posts.deletingId
 }
 
+export function selectPostsDeleteError(state: PostsModuleState) {
+  return state.posts.deleteError
+}
+
 export function selectPostsAuthorOptions(state: PostsModuleState) {
   return state.posts.authorOptions
 }
@@ -50,4 +58,8 @@ export function selectPostsTagOptions(state: PostsModuleState) {
 
 export function selectPostsReferencesLoading(state: PostsModuleState) {
   return state.posts.referencesLoading
+}
+
+export function selectPostsReferencesError(state: PostsModuleState) {
+  return state.posts.referencesError
 }

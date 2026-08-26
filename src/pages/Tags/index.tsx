@@ -26,6 +26,7 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { tagsActions } from '@/modules/tags/actions'
 import type { TagsModuleState } from '@/modules/tags/tags.module'
 import {
+  selectTagsDeleteError,
   selectTagsDeletingId,
   selectTagsError,
   selectTagsItems,
@@ -40,20 +41,11 @@ import {
   TAGS_TABLE_COLS,
   tableFillStyle,
 } from '@/utils/tableColumns'
+import { formatTableDate } from '@/utils/formatDate'
 import { TagFormModal } from './TagFormModal'
 
 type TagDataRow = TagListItem | TablePlaceholderRow
 type TagTableRow = TagDataRow | TableSkeletonRow
-
-function formatDate(value: string, locale: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return date.toLocaleDateString(locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
 
 function TagsPageContent() {
   const dispatch = useDispatch()
@@ -64,6 +56,9 @@ function TagsPageContent() {
   const error = useSelector((state: TagsModuleState) => selectTagsError(state))
   const deletingId = useSelector((state: TagsModuleState) =>
     selectTagsDeletingId(state),
+  )
+  const deleteError = useSelector((state: TagsModuleState) =>
+    selectTagsDeleteError(state),
   )
 
   const [page, setPage] = useState(1)
@@ -86,10 +81,17 @@ function TagsPageContent() {
 
   useEffect(() => {
     if (prevDeletingIdRef.current && deletingId === null) {
-      message.success(t('tags.deleted'))
+      if (deleteError) {
+        notification.error({
+          message: t('tags.deleteFailed'),
+          description: deleteError,
+        })
+      } else {
+        message.success(t('tags.deleted'))
+      }
     }
     prevDeletingIdRef.current = deletingId
-  }, [deletingId, t])
+  }, [deletingId, deleteError, t])
 
   const { rows: pageItems, fillRowCount } = useMemo(() => {
     const start = (page - 1) * pageSize
@@ -169,7 +171,7 @@ function TagsPageContent() {
         width: TAGS_TABLE_COLS.created,
         align: 'center',
         render: (value: string, record) =>
-          isTablePlaceholderRow(record) ? null : formatDate(value, dateLocale),
+          isTablePlaceholderRow(record) ? null : formatTableDate(value, dateLocale),
       },
       {
         title: t('common.actions'),

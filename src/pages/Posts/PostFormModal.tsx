@@ -13,6 +13,7 @@ import {
   Modal,
   Select,
   message,
+  notification,
 } from '@/components/ui'
 import { useEditFormReveal } from '@/hooks/useEditFormReveal'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
@@ -25,8 +26,10 @@ import {
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
   selectPostDetail,
+  selectPostDetailError,
   selectPostDetailLoading,
   selectPostsAuthorOptions,
+  selectPostsReferencesError,
   selectPostsReferencesLoading,
   selectPostsSaveError,
   selectPostsSaveFieldErrors,
@@ -78,6 +81,9 @@ export function PostFormModal({
   const detailLoading = useSelector((state: PostsModuleState) =>
     selectPostDetailLoading(state),
   )
+  const detailError = useSelector((state: PostsModuleState) =>
+    selectPostDetailError(state),
+  )
   const saving = useSelector((state: PostsModuleState) => selectPostsSaving(state))
   const saveError = useSelector((state: PostsModuleState) =>
     selectPostsSaveError(state),
@@ -96,6 +102,9 @@ export function PostFormModal({
   )
   const referencesLoading = useSelector((state: PostsModuleState) =>
     selectPostsReferencesLoading(state),
+  )
+  const referencesError = useSelector((state: PostsModuleState) =>
+    selectPostsReferencesError(state),
   )
 
   const previewUrl = localPreviewUrl ?? existingPreviewUrl
@@ -131,7 +140,7 @@ export function PostFormModal({
     [tagOptions],
   )
 
-  useFormApiErrors(form, formFieldErrors, saveError, 'Post')
+  useFormApiErrors(form, formFieldErrors, saveError, t('posts.saveFailed'))
 
   useEffect(() => {
     if (!previewFile) {
@@ -201,8 +210,37 @@ export function PostFormModal({
     detailLoading,
     detailReady: Boolean(detail),
     extraPending: referencesLoading,
+    failed: Boolean(detailError),
     hydrate: hydratePostForm,
   })
+
+  useEffect(() => {
+    if (!open || !editingId || !detailError) return
+    notification.error({
+      message: t('posts.loadDetailFailed'),
+      description: detailError,
+    })
+    onClose()
+  }, [detailError, editingId, onClose, open, t])
+
+  const notifiedReferencesErrorRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!open) {
+      notifiedReferencesErrorRef.current = null
+      return
+    }
+    if (
+      !referencesError ||
+      referencesError === notifiedReferencesErrorRef.current
+    ) {
+      return
+    }
+    notifiedReferencesErrorRef.current = referencesError
+    notification.error({
+      message: t('posts.loadReferencesFailed'),
+      description: referencesError,
+    })
+  }, [open, referencesError, t])
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {

@@ -12,6 +12,7 @@ import {
   Input,
   Modal,
   message,
+  notification,
 } from '@/components/ui'
 import { useEditFormReveal } from '@/hooks/useEditFormReveal'
 import { useFormApiErrors } from '@/hooks/useFormApiErrors'
@@ -20,6 +21,7 @@ import { authorsActions } from '@/modules/authors/actions'
 import type { AuthorsModuleState } from '@/modules/authors/authors.module'
 import {
   selectAuthorDetail,
+  selectAuthorDetailError,
   selectAuthorDetailLoading,
   selectAuthorsSaveError,
   selectAuthorsSaveFieldErrors,
@@ -68,6 +70,9 @@ export function AuthorFormModal({
   const detailLoading = useSelector((state: AuthorsModuleState) =>
     selectAuthorDetailLoading(state),
   )
+  const detailError = useSelector((state: AuthorsModuleState) =>
+    selectAuthorDetailError(state),
+  )
   const saving = useSelector((state: AuthorsModuleState) =>
     selectAuthorsSaving(state),
   )
@@ -78,7 +83,7 @@ export function AuthorFormModal({
     selectAuthorsSaveFieldErrors(state),
   )
 
-  useFormApiErrors(form, saveFieldErrors, saveError, 'Author')
+  useFormApiErrors(form, saveFieldErrors, saveError, t('authors.saveFailed'))
 
   const avatarUrl = localAvatarUrl ?? (removeAvatar ? null : existingAvatarUrl)
   const watchedName = Form.useWatch('name', form)
@@ -163,8 +168,18 @@ export function AuthorFormModal({
     editingId,
     detailLoading,
     detailReady: Boolean(detail),
+    failed: Boolean(detailError),
     hydrate: hydrateAuthorForm,
   })
+
+  useEffect(() => {
+    if (!open || !editingId || !detailError) return
+    notification.error({
+      message: t('authors.loadDetailFailed'),
+      description: detailError,
+    })
+    onClose()
+  }, [detailError, editingId, onClose, open, t])
 
   useEffect(() => {
     if (wasSavingRef.current && !saving && !saveError) {

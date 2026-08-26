@@ -8,6 +8,8 @@ type UseEditFormRevealOptions = {
   detailReady: boolean
   /** Доп. ожидание (например, справочники постов). */
   extraPending?: boolean
+  /** Detail/справочники упали — снимаем скелетон без hydrate. */
+  failed?: boolean
   minSkeletonMs?: number
   /** Синхронно заполняет форму перед показом. */
   hydrate: () => void
@@ -24,6 +26,7 @@ export function useEditFormReveal({
   detailLoading,
   detailReady,
   extraPending = false,
+  failed = false,
   minSkeletonMs = 420,
   hydrate,
 }: UseEditFormRevealOptions): boolean {
@@ -47,6 +50,12 @@ export function useEditFormReveal({
 
   useEffect(() => {
     if (!open || !editingId) return
+
+    if (failed) {
+      setReady(true)
+      return
+    }
+
     if (detailLoading || !detailReady || extraPending) return
 
     hydrate()
@@ -66,6 +75,7 @@ export function useEditFormReveal({
     detailLoading,
     detailReady,
     extraPending,
+    failed,
     hydrate,
     minSkeletonMs,
   ])
