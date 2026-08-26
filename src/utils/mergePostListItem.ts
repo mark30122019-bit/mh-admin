@@ -31,9 +31,7 @@ export function mergePostListItemWithForm(
     ...item,
     title: values.title,
     authorId,
-    authorName: author
-      ? formatAuthorDisplayName(author)
-      : item.authorName,
+    authorName: author ? formatAuthorDisplayName(author) : item.authorName,
     tagIds,
     tagNames,
   }

@@ -19,6 +19,9 @@ type UseEditFormRevealOptions = {
  * Пока идёт edit-load — скелетон.
  * Форму показываем только после hydrate и (при быстром ответе) не раньше minSkeletonMs,
  * чтобы не мелькали пустые/disabled инпуты.
+ *
+ * Hydrate один раз за сессию edit (open + editingId): повторный fetch справочников
+ * (focus/visibility) не должен затирать уже выбранные поля (например, нового автора).
  */
 export function useEditFormReveal({
   open,
@@ -32,20 +35,26 @@ export function useEditFormReveal({
 }: UseEditFormRevealOptions): boolean {
   const [ready, setReady] = useState(() => !editingId)
   const loadStartedAtRef = useRef(0)
+  const hydratedKeyRef = useRef<number | null>(null)
+  const hydrateRef = useRef(hydrate)
+  hydrateRef.current = hydrate
 
   useEffect(() => {
     if (!open) {
       setReady(false)
+      hydratedKeyRef.current = null
       return
     }
 
     if (!editingId) {
       setReady(true)
+      hydratedKeyRef.current = null
       return
     }
 
     loadStartedAtRef.current = Date.now()
     setReady(false)
+    hydratedKeyRef.current = null
   }, [open, editingId])
 
   useEffect(() => {
@@ -58,7 +67,10 @@ export function useEditFormReveal({
 
     if (detailLoading || !detailReady || extraPending) return
 
-    hydrate()
+    if (hydratedKeyRef.current !== editingId) {
+      hydrateRef.current()
+      hydratedKeyRef.current = editingId
+    }
 
     const elapsed = Date.now() - loadStartedAtRef.current
     const wait = Math.max(0, minSkeletonMs - elapsed)
@@ -76,7 +88,6 @@ export function useEditFormReveal({
     detailReady,
     extraPending,
     failed,
-    hydrate,
     minSkeletonMs,
   ])
 

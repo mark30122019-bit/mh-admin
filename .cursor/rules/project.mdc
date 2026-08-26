@@ -101,8 +101,10 @@ src/
 - Типизировать API-ответы, экшены, state, пропсы, пагинацию из headers.
 - ID с API нормализовать через `toEntityId` / `idsEqual` (string vs number).
 
-### 6. Данные-сироты
-- Удалённые авторы/теги: Safe Render (`orphanLabels`), temporary option в Select автора, голые ID тегов можно снять.
+### 6. Нет автора / тега у поста
+- В таблице — прочерк (`—`), без красных «удалён».
+- Админ назначает автора/теги заново через обычный Edit.
+- Хелперы: `resolvePostAuthorLabel` / `resolvePostTagLabels` в `orphanLabels.ts`.
 
 ---
 

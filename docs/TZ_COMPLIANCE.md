@@ -42,7 +42,7 @@
 | Lazy load components | ✅ | `React.lazy` + `LazyPage` |
 | Lazy load reducers | ✅ | `DynamicModuleLoader` |
 | i18n RU/EN | ✅ | Redux `app` + localStorage + AntD locale |
-| Orphan authors/tags | ✅ | Safe Render, Select orphan option |
+| Нет автора/тега у поста | ✅ | Прочерк в таблице; назначение через обычный Edit |
 | Domain-split API | ✅ | `api/core`, `auth`, `posts`, `authors`, `tags`, `shared` |
 
 ## Архитектура

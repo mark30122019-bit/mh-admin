@@ -13,7 +13,6 @@ import { Tag } from './Tag'
 export type OverflowTagItem = {
   key: string
   label: string
-  orphan?: boolean
 }
 
 type OverflowTagsProps = {
@@ -32,7 +31,7 @@ export function OverflowTags({ tags, gap = 4 }: OverflowTagsProps) {
   const [visibleCount, setVisibleCount] = useState(tags.length)
 
   const tagsSignature = useMemo(
-    () => tags.map((tag) => `${tag.key}:${tag.label}:${tag.orphan ? 1 : 0}`).join('|'),
+    () => tags.map((tag) => `${tag.key}:${tag.label}`).join('|'),
     [tags],
   )
 
@@ -117,7 +116,6 @@ export function OverflowTags({ tags, gap = 4 }: OverflowTagsProps) {
         {tags.map((tag) => (
           <span key={tag.key} data-overflow-tag className="inline-flex">
             <Tag
-              color={tag.orphan ? 'error' : undefined}
               style={{ maxWidth: 96, marginInlineEnd: 0 }}
               className="!m-0 truncate"
             >
@@ -139,7 +137,6 @@ export function OverflowTags({ tags, gap = 4 }: OverflowTagsProps) {
         {visible.map((tag) => (
           <EllipsisTooltip key={tag.key} title={tag.label}>
             <Tag
-              color={tag.orphan ? 'error' : undefined}
               style={{ maxWidth: 96, marginInlineEnd: 0 }}
               className="!m-0 truncate"
             >

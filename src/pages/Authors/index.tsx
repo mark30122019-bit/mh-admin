@@ -127,6 +127,11 @@ function AuthorsPageContent() {
     notification.error({ message: t('authors.loadFailed'), description: error })
   }, [error, t])
 
+  // Модуль живёт в AdminShell: при возврате с Posts/другой вкладки нужен свежий список.
+  useEffect(() => {
+    dispatch(authorsActions.fetchRequest())
+  }, [dispatch])
+
   const revalidateAuthors = useCallback(() => {
     dispatch(authorsActions.fetchRequest())
   }, [dispatch])

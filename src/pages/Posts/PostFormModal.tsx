@@ -36,9 +36,9 @@ import {
   selectPostsSaving,
   selectPostsTagOptions,
 } from '@/modules/posts/selectors'
-import { idsEqual, toEntityId } from '@/utils/entityId'
+import { toEntityId } from '@/utils/entityId'
 import { FIELD_MAX_LENGTH, resolveInputMaxLength } from '@/utils/fieldMaxLength'
-import { formatDeletedEntityLabel, formatAuthorDisplayName } from '@/utils/orphanLabels'
+import { formatAuthorDisplayName } from '@/utils/orphanLabels'
 
 type PostFormValues = {
   title: string
@@ -66,7 +66,7 @@ export function PostFormModal({
   onClose,
 }: PostFormModalProps) {
   const dispatch = useDispatch()
-  const { t, lang } = useTranslation()
+  const { t } = useTranslation()
   const [form] = Form.useForm<PostFormValues>()
   const [previewFile, setPreviewFile] = useState<File | undefined>()
   const [existingPreviewUrl, setExistingPreviewUrl] = useState<string | null>(
@@ -111,25 +111,14 @@ export function PostFormModal({
   const hasPreview = Boolean(previewFile || existingPreviewUrl)
   const watchedTitle = Form.useWatch('title', form)
 
-  const authorSelectOptions = useMemo(() => {
-    const options = authorOptions.map((author) => ({
-      value: toEntityId(author.id) ?? author.id,
-      label: formatAuthorDisplayName(author),
-    }))
-
-    const orphanAuthorId = toEntityId(detail?.author?.id)
-    if (
-      orphanAuthorId != null &&
-      !authorOptions.some((author) => idsEqual(author.id, orphanAuthorId))
-    ) {
-      options.unshift({
-        value: orphanAuthorId,
-        label: formatDeletedEntityLabel(orphanAuthorId, lang),
-      })
-    }
-
-    return options
-  }, [authorOptions, detail?.author?.id, lang])
+  const authorSelectOptions = useMemo(
+    () =>
+      authorOptions.map((author) => ({
+        value: toEntityId(author.id) ?? author.id,
+        label: formatAuthorDisplayName(author),
+      })),
+    [authorOptions],
+  )
 
   const tagSelectOptions = useMemo(
     () =>

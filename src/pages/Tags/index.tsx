@@ -80,6 +80,11 @@ function TagsPageContent() {
     notification.error({ message: t('tags.loadFailed'), description: error })
   }, [error, t])
 
+  // Модуль живёт в AdminShell: при возврате с Posts/другой вкладки нужен свежий список.
+  useEffect(() => {
+    dispatch(tagsActions.fetchRequest())
+  }, [dispatch])
+
   const revalidateTags = useCallback(() => {
     dispatch(tagsActions.fetchRequest())
   }, [dispatch])

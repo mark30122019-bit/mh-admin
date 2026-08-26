@@ -30,14 +30,12 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { postsActions } from '@/modules/posts/actions'
 import type { PostsModuleState } from '@/modules/posts/posts.module'
 import {
-  selectPostsAuthorOptions,
   selectPostsDeleteError,
   selectPostsDeletingId,
   selectPostsError,
   selectPostsItems,
   selectPostsLoading,
   selectPostsPagination,
-  selectPostsTagOptions,
 } from '@/modules/posts/selectors'
 import {
   resolvePostAuthorLabel,
@@ -77,12 +75,6 @@ function PostsPageContent() {
   )
   const deleteError = useSelector((state: PostsModuleState) =>
     selectPostsDeleteError(state),
-  )
-  const authorCatalog = useSelector((state: PostsModuleState) =>
-    selectPostsAuthorOptions(state),
-  )
-  const tagCatalog = useSelector((state: PostsModuleState) =>
-    selectPostsTagOptions(state),
   )
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -231,19 +223,11 @@ function PostsPageContent() {
         ellipsis: { showTitle: false },
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
-          const { label, orphan } = resolvePostAuthorLabel(
-            record,
-            authorCatalog,
-            lang,
-          )
-          return (
-            <EllipsisTooltip
-              title={label}
-              style={orphan ? { color: '#cf1322' } : undefined}
-            >
-              {label}
-            </EllipsisTooltip>
-          )
+          const label = resolvePostAuthorLabel(record)
+          if (!label) {
+            return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
+          }
+          return <EllipsisTooltip title={label}>{label}</EllipsisTooltip>
         },
       },
       {
@@ -253,7 +237,7 @@ function PostsPageContent() {
         ellipsis: true,
         render: (_, record) => {
           if (isTablePlaceholderRow(record)) return null
-          const resolvedTags = resolvePostTagLabels(record, tagCatalog, lang)
+          const resolvedTags = resolvePostTagLabels(record)
           if (resolvedTags.length === 0) {
             return <span style={{ color: 'rgba(0, 0, 0, 0.25)' }}>—</span>
           }
@@ -300,7 +284,7 @@ function PostsPageContent() {
         },
       },
     ],
-    [authorCatalog, confirmDelete, dateLocale, deletingId, lang, t, tagCatalog],
+    [confirmDelete, dateLocale, deletingId, lang, t],
   )
 
   const displayColumns = useMemo(

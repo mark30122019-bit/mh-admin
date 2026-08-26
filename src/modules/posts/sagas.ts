@@ -48,6 +48,15 @@ function* resolvePostCode(id?: number): SagaIterator {
 
 function* fetchPostsWorker(action: PostsFetchRequestAction): SagaIterator {
   try {
+    // Не затираем список сырым ответом, пока идёт save (там merge формы).
+    const saving: boolean = yield select(
+      (state: { posts?: { saving?: boolean } }) =>
+        Boolean(state.posts?.saving),
+    )
+    if (saving) {
+      return
+    }
+
     const response = yield call(fetchPostsList, { page: action.payload.page })
     yield put(postsActions.fetchSuccess(response))
   } catch (error) {
