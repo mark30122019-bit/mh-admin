@@ -3,7 +3,7 @@ import {
   EditOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
-import { Typography } from 'antd'
+import { Image, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -18,7 +18,6 @@ import {
   Pagination,
   Space,
   Table,
-  TableMediaImage,
   buildTableSkeletonRows,
   isTableSkeletonRow,
   message,
@@ -188,12 +187,17 @@ function PostsPageContent() {
             )
           }
           return (
-            <TableMediaImage
+            <Image
               src={url}
               alt={record.title}
               width={POSTS_TABLE_PREVIEW.width}
               height={POSTS_TABLE_PREVIEW.height}
-              shape="rect"
+              style={{
+                objectFit: 'cover',
+                borderRadius: 4,
+                display: 'block',
+                background: '#f5f5f5',
+              }}
               preview={{
                 src: url,
                 maskClassName: 'posts-preview-mask',

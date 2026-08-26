@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Redirect, useHistory, useLocation } from 'react-router-dom'
+import { Spin } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 
 type AuthRouteProps = {
@@ -20,7 +21,7 @@ export function AuthRoute({
   const { isAuthenticated, isInitialized } = useAuth()
 
   if (!isInitialized) {
-    return <div className="min-h-screen bg-[#f5f5f5]" />
+    return <Spin fullPage />
   }
 
   if (isPrivate && !isAuthenticated) {

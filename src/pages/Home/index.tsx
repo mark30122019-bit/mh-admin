@@ -1,8 +1,8 @@
-import { PageContentSkeleton } from '@/components/ui'
+import { Spin } from '@/components/ui'
 import { useHomeRedirect } from '@/routes/AuthRoute'
 
-/** Корень `/`: редирект на /posts или /login. */
+/** Entry-point `/`: только редирект на /posts или /login. */
 export default function HomePage() {
   useHomeRedirect()
-  return <PageContentSkeleton />
+  return <Spin fullPage />
 }

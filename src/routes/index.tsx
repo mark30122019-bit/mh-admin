@@ -1,36 +1,24 @@
-import { useEffect, type ReactNode } from 'react'
-import { lazy } from 'react'
-import { useDispatch } from 'react-redux'
+import { lazy, type ReactNode } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { LazyPage } from '@/components/LazyPage'
 import { DynamicModuleLoader } from '@/components/DynamicModuleLoader'
 import { MainLayout } from '@/components/Layout'
-import { PageContentSkeleton } from '@/components/ui'
 import { getAuthorsModule } from '@/modules/authors/authors.module'
 import { getPostsModule } from '@/modules/posts/posts.module'
 import { getTagsModule } from '@/modules/tags/tags.module'
-import {
-  AuthorsPage,
-  PostsPage,
-  TagsPage,
-} from '@/routes/adminPages'
+import AuthorsPage from '@/pages/Authors'
+import PostsPage from '@/pages/Posts'
+import TagsPage from '@/pages/Tags'
 import { AuthRoute } from '@/routes/AuthRoute'
-import { warmAllAdminPages } from '@/utils/prefetchAdminPage'
 
 const HomePage = lazy(() => import('@/pages/Home'))
 const LoginPage = lazy(() => import('@/pages/Login'))
 
 /**
- * Общий shell админки: layout и redux-модули не размонтируются.
- * Страницы — lazyWithPreload; после hover/warm рендер без кадра Suspense.
+ * Общий shell админки: layout и redux-модули не размонтируются
+ * при переключении Posts / Authors / Tags — без белой вспышки.
  */
 function AdminShell({ children }: { children: ReactNode }) {
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    warmAllAdminPages(dispatch)
-  }, [dispatch])
-
   return (
     <AuthRoute private>
       <DynamicModuleLoader
@@ -38,8 +26,7 @@ function AdminShell({ children }: { children: ReactNode }) {
         strictMode
       >
         <MainLayout>
-          {/* Fallback только скелетон контента — без Spin; сайдбар/шапка уже на месте */}
-          <LazyPage fallback={<PageContentSkeleton />}>{children}</LazyPage>
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </MainLayout>
       </DynamicModuleLoader>
     </AuthRoute>
@@ -50,7 +37,7 @@ export function AppRoutes() {
   return (
     <Switch>
       <Route exact path="/login">
-        <LazyPage fallback={<PageContentSkeleton />}>
+        <LazyPage>
           <AuthRoute guestOnly>
             <LoginPage />
           </AuthRoute>
@@ -74,7 +61,7 @@ export function AppRoutes() {
       </Route>
 
       <Route exact path="/">
-        <LazyPage fallback={<PageContentSkeleton />}>
+        <LazyPage>
           <HomePage />
         </LazyPage>
       </Route>

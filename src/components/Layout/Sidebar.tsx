@@ -2,18 +2,26 @@ import { FileTextOutlined, TagsOutlined, TeamOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 import type { MenuProps } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
-import { useDispatch } from 'react-redux'
 import { useHistory, useLocation } from 'react-router-dom'
 import { useTranslation } from '@/hooks/useTranslation'
-import { warmAdminSection } from '@/utils/prefetchAdminPage'
 
 const { Sider } = Layout
 
 /** Ниже xl (1200px) — только иконки, больше места под таблицы. */
 const COLLAPSE_MQ = '(max-width: 1199px)'
 
+const PREFETCH_BY_PATH: Record<string, () => Promise<unknown>> = {
+  '/posts': () => import('@/pages/Posts'),
+  '/authors': () => import('@/pages/Authors'),
+  '/tags': () => import('@/pages/Tags'),
+}
+
+function prefetch(path: string) {
+  const loader = PREFETCH_BY_PATH[path]
+  if (loader) void loader()
+}
+
 export function Sidebar() {
-  const dispatch = useDispatch()
   const history = useHistory()
   const location = useLocation()
   const { t } = useTranslation()
@@ -34,23 +42,28 @@ export function Sidebar() {
       {
         key: '/posts',
         icon: <FileTextOutlined />,
-        label: t('nav.posts'),
-        onMouseEnter: () => warmAdminSection('/posts', dispatch),
+        label: (
+          <span onMouseEnter={() => prefetch('/posts')}>{t('nav.posts')}</span>
+        ),
       },
       {
         key: '/authors',
         icon: <TeamOutlined />,
-        label: t('nav.authors'),
-        onMouseEnter: () => warmAdminSection('/authors', dispatch),
+        label: (
+          <span onMouseEnter={() => prefetch('/authors')}>
+            {t('nav.authors')}
+          </span>
+        ),
       },
       {
         key: '/tags',
         icon: <TagsOutlined />,
-        label: t('nav.tags'),
-        onMouseEnter: () => warmAdminSection('/tags', dispatch),
+        label: (
+          <span onMouseEnter={() => prefetch('/tags')}>{t('nav.tags')}</span>
+        ),
       },
     ],
-    [dispatch, t],
+    [t],
   )
 
   const selectedKey =
@@ -91,10 +104,7 @@ export function Sidebar() {
         inlineCollapsed={collapsed}
         selectedKeys={[selectedKey]}
         items={menuItems}
-        onClick={({ key }) => {
-          warmAdminSection(key, dispatch)
-          history.push(key)
-        }}
+        onClick={({ key }) => history.push(key)}
         style={{
           padding: collapsed ? '8px 0' : '8px 12px',
           background: 'transparent',

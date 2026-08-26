@@ -37,7 +37,7 @@
 | Плюс | Статус | Комментарий |
 |------|--------|-------------|
 | Ant Design | ✅ | UI-обёртки + `ConfigProvider` |
-| Lazy load components | ✅ | `lazyWithPreload` + один Suspense в `AdminShell`; prefetch hover/warm; без Spin на списках |
+| Lazy load components | 🟡 | Login и Home через `React.lazy`; Posts/Authors/Tags — статичный импорт внутри `AdminShell` (без вспышки layout) |
 | Lazy load reducers | ✅ | `redux-dynamic-modules`: auth / posts / authors / tags не в корневом store |
 
 ## Что в ТЗ не требовалось (сделано сверху)
@@ -65,6 +65,6 @@
 | Обязательный стек | 100% |
 | Минимальный функционал | 100% |
 | Максимальный функционал | 100% |
-| Плюсы (Ant + lazy) | полностью |
+| Плюсы (Ant + lazy) | ~полностью; lazy components — осознанно не на всех страницах |
 
-**Вывод:** обязательное, максимальное и плюсы по ТЗ закрыты. К сдаче готово.
+**Вывод:** обязательное и максимальное по ТЗ закрыты. Из «плюсов» единственный нюанс — lazy не на CRUD-страницах админки (в пользу стабильного shell). К сдаче готово.
