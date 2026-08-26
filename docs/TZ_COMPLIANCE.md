@@ -1,70 +1,70 @@
-# Соответствие структуры проекта ТЗ
+# Соответствие ТЗ
 
 Источник: [Тестовое задание REACT JS](https://docs.google.com/document/d/14gBYc9NiOID9rbPv6Xt3Ihu8xRv-JHy7C9rClWdqeLY/edit)
 
-**Легенда:** ✅ реализовано · 🟡 частично · ⬜ не начато
+**Легенда:** ✅ сделано · 🟡 частично · ❌ нет
 
 ## Обязательный стек
 
-| Требование | Статус | Комментарий |
-|------------|--------|-------------|
-| React | ✅ | React 18.3 (совместимость с `connected-react-router`) |
-| TypeScript | ✅ | Strict typing, без `any` |
-| Redux | ✅ | `redux-dynamic-modules`, бизнес-модули не в корневом store |
-| Redux-Saga | ✅ | Саги в `modules/*/sagas.ts` |
-| react-router-dom | ✅ | v5, lazy routes |
-| connected-react-router | ✅ | `ConnectedRouter`, навигация через `push()` в сагах |
+| Требование | Статус | Как у нас |
+|------------|--------|-----------|
+| React | ✅ | React 18.3 (`connected-react-router` не на 19) |
+| TypeScript | ✅ | без `any` |
+| Redux | ✅ | store + `redux-dynamic-modules` |
+| Redux-Saga | ✅ | `modules/*/sagas.ts` |
+| react-router-dom | ✅ | v5 |
+| connected-react-router | ✅ | `ConnectedRouter`, `push()` в сагах |
 
 ## Минимальный функционал
 
-| Функция | Статус | Где |
-|---------|--------|-----|
-| Авторизация + токены в cookies | ✅ | `pages/Login`, `api/core/cookies.ts` |
-| Refresh access token при 401 | ✅ | `api/core/client.ts` interceptor + retry |
-| Session expired → logout/redirect | ✅ | `authSession` bridge → `SESSION_EXPIRED` → `/login` |
-| Список постов | ✅ | `pages/Posts`, `modules/posts` |
-| Пагинация из headers | ✅ | `X-Pagination-*` → `parsePaginationHeaders` |
+| Требование | Статус | Где |
+|------------|--------|-----|
+| Авторизация, access + refresh в cookies | ✅ | Login, `api/core/cookies.ts` |
+| Refresh при истечении токена | ✅ | interceptor 401 → refresh → retry |
+| Список постов + пагинация из headers | ✅ | `X-Pagination-*`, `pages/Posts` |
 
-## Максимальный функционал
+## Максимальный функционал (по желанию в ТЗ)
 
-| Функция | Статус | Где |
-|---------|--------|-----|
-| CRUD постов | ✅ | `PostFormModal`, preview upload, Quill WYSIWYG |
-| Ошибки валидации API в формах | ✅ | `useFormApiErrors`, `parseApiError` |
-| CRUD авторов | ✅ | `pages/Authors`, avatar upload / removeAvatar |
-| CRUD тегов | ✅ | `pages/Tags`, optional `sort` |
+| Требование | Статус | Где |
+|------------|--------|-----|
+| CRUD постов | ✅ | create / edit / delete, preview, Quill |
+| Ошибки валидации и системные ошибки в форме поста | ✅ | `useFormApiErrors`, `parseApiError` |
+| CRUD авторов | ✅ | avatar, removeAvatar |
+| CRUD тегов | ✅ | optional `sort` |
 
-## Плюсы из ТЗ и усиления
+## Плюсы из ТЗ
 
-| Функция | Статус | Комментарий |
-|---------|--------|-------------|
-| Ant Design | ✅ | `ConfigProvider` + UI-обёртки |
-| Lazy load components | ✅ | `React.lazy` + `LazyPage` |
-| Lazy load reducers | ✅ | `DynamicModuleLoader` |
-| i18n RU/EN | ✅ | Redux `app` + localStorage + AntD locale |
-| Нет автора/тега у поста | ✅ | Прочерк в таблице; назначение через обычный Edit |
-| Domain-split API | ✅ | `api/core`, `auth`, `posts`, `authors`, `tags`, `shared` |
+| Плюс | Статус | Комментарий |
+|------|--------|-------------|
+| Ant Design | ✅ | UI-обёртки + `ConfigProvider` |
+| Lazy load components | 🟡 | Login и Home через `React.lazy`; Posts/Authors/Tags — статичный импорт внутри `AdminShell` (без вспышки layout) |
+| Lazy load reducers | ✅ | `redux-dynamic-modules`: auth / posts / authors / tags не в корневом store |
 
-## Архитектура
+## Что в ТЗ не требовалось (сделано сверху)
 
-- `pages/` — UI, `modules/` — state/sagas
-- Глобально в store: `router`, `app` (язык)
+- i18n RU/EN
+- скелетоны таблиц / форм
+- desktop/tablet layout, overflow tags, focus-revalidation списков
+
+## Архитектура (кратко)
+
+- В корневом store: `router`, `app` (язык)
 - Динамически: `auth`, `posts`, `authors`, `tags`
-- Protected routes: `AuthRoute` (`private` / `guestOnly`)
-- `/` — только редирект на `/posts` или `/login`
+- API разбит по доменам: `api/core`, `auth`, `posts`, `authors`, `tags`, `shared`
+- `/` — только редирект
 
 ## Тестовые данные (из ТЗ)
 
 - Email: `test@test.ru`
 - Password: `khro2ij3n2730`
 
-## Итоговая оценка
+## Итог
 
-| Критерий | Оценка |
-|----------|--------|
-| Обязательный стек | **100%** |
-| Минимальный функционал | **100%** |
-| Максимальный функционал | **100%** |
-| Готовность к сдаче | **~95%+** (полировка сверх ТЗ) |
+| Блок ТЗ | Оценка |
+|---------|--------|
+| Обязательный стек | 100% |
+| Минимальный функционал | 100% |
+| Максимальный функционал | 100% |
+| Плюсы (Ant + lazy) | ~полностью; lazy components — осознанно не на всех страницах |
 
-Статус актуален относительно кода в `src/` и README.
+**Вывод:** обязательное и максимальное по ТЗ закрыты. Из «плюсов» единственный нюанс — lazy не на CRUD-страницах админки (в пользу стабильного shell). К сдаче готово.

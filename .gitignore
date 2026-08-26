@@ -25,3 +25,5 @@ dist-ssr
 
 # Локальные заметки / QA (не в репозиторий)
 QA_UI_CHECKLIST.md
+
+.vercel
