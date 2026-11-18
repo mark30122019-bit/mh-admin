@@ -1,16 +1,23 @@
-import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import react from '@vitejs/plugin-react';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url))
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   resolve: {
-    alias: {
-      '@': path.resolve(rootDir, './src'),
+    alias: { '@': path.resolve(rootDir, './src') },
+  },
+  server: {
+    port: 5174,
+    proxy: {
+      '/v1': {
+        target: process.env.VITE_API_PROXY || 'https://dev-api.smart-price-mira.ru',
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
-})
+});

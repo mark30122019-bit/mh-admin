@@ -1,6 +1,0 @@
-export { MainLayout } from './MainLayout'
-export { AppHeader } from './Header'
-export { Sidebar } from './Sidebar'
-export { LanguageSwitcher } from './LanguageSwitcher'
-export { AdminPageFrame } from './AdminPageFrame'
-export { AdminTableShell } from './AdminTableShell'
