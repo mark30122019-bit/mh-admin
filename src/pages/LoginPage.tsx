@@ -1,20 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Button, Card, Form, Input, Typography } from 'antd';
+import QRCode from 'qrcode';
 
 import { api } from '../api/client';
+import { adminEnvLabel, detectAdminEnv } from '../env';
 
 type Props = {
   onAuthed: (next: { email: string; csrfToken: string }) => void;
 };
 
 export function LoginPage({ onAuthed }: Props) {
+  const env = detectAdminEnv();
   const [step, setStep] = useState<'password' | 'totp' | 'enroll_totp'>('password');
   const [pendingToken, setPendingToken] = useState('');
   const [email, setEmail] = useState('');
   const [otpauthUrl, setOtpauthUrl] = useState('');
   const [totpSecret, setTotpSecret] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!otpauthUrl) {
+      setQrDataUrl('');
+      return;
+    }
+    void QRCode.toDataURL(otpauthUrl, {
+      width: 220,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+    }).then((url) => {
+      if (!cancelled) setQrDataUrl(url);
+    }).catch(() => {
+      if (!cancelled) setQrDataUrl('');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [otpauthUrl]);
 
   const submitPassword = async (values: { email: string; password: string }) => {
     setBusy(true);
@@ -52,7 +76,17 @@ export function LoginPage({ onAuthed }: Props) {
 
   return (
     <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24 }}>
-      <Card style={{ width: 420, maxWidth: '100%' }} title="SmartPrice Admin">
+      <Card
+        style={{ width: 420, maxWidth: '100%' }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span>SmartPrice Admin</span>
+            <Typography.Text type="secondary" style={{ fontSize: 12, fontWeight: 600 }}>
+              {adminEnvLabel(env)}
+            </Typography.Text>
+          </div>
+        }
+      >
         <Typography.Paragraph type="secondary">
           Доступ только с allowlist IP. Нужны пароль и TOTP.
         </Typography.Paragraph>
@@ -80,16 +114,25 @@ export function LoginPage({ onAuthed }: Props) {
                 message="Включите 2FA"
                 description={
                   <div>
-                    <div>Добавьте аккаунт в Authenticator:</div>
-                    {otpauthUrl ? (
-                      <Typography.Paragraph copyable style={{ marginTop: 8, marginBottom: 4 }}>
-                        {otpauthUrl}
-                      </Typography.Paragraph>
+                    <div>Отсканируйте QR в Google Authenticator / Authy:</div>
+                    {qrDataUrl ? (
+                      <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+                        <img
+                          src={qrDataUrl}
+                          alt="QR код для 2FA"
+                          width={220}
+                          height={220}
+                          style={{ borderRadius: 8, background: '#fff' }}
+                        />
+                      </div>
                     ) : null}
                     {totpSecret ? (
-                      <Typography.Text code copyable>
-                        {totpSecret}
-                      </Typography.Text>
+                      <div style={{ marginTop: 4 }}>
+                        Или введите ключ вручную:{' '}
+                        <Typography.Text code copyable>
+                          {totpSecret}
+                        </Typography.Text>
+                      </div>
                     ) : null}
                     <div style={{ marginTop: 8 }}>Пользователь: {email}</div>
                   </div>
